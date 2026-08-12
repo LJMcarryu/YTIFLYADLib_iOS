@@ -242,7 +242,7 @@ jobs:
               assert not is_tag_push, "tag push 不得携带 PENDING checksum"
               assert pod_version == "6.2.3"
               assert f"当前清单目标版本：`{pod_version}`（待发布）" in readme
-              assert "正式签名资产、checksum、tag 和 Release 尚未生成" in readme
+              assert "正式签名资产、checksum、tag 和 GitHub Release 尚未生成" in readme
               assert "`6.2.3` 尚未发布" in demo_readme
               assert "进入公开仓发布准备态" in release_state
               assert "当前不得发布" in release_state
