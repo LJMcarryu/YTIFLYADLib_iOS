@@ -450,7 +450,7 @@ jobs:
           test ! -d YTIFLYADLibSimple/YTIFLYADLibSimple/biz/banner
           test ! -d YTIFLYADLibSimple/YTIFLYADLibSimple/biz/reward
           test ! -d YTIFLYADLibSimple/YTIFLYADLibSimple/biz/native
-          if grep -R -n -E --exclude-dir=build 'YTIFLY(Banner|Reward|NativeFeed)|__BANNER_|__.*NATIVE_|__FEED_' YTIFLYADLibSimple; then
+          if grep -R -n -E --exclude-dir=build 'YTIFLY(Banner|Reward|NativeFeed)|__(BANNER|REWARD)_[A-Z0-9_]*__|__(TYPED_(ONE|MORE)_NATIVE|FEED_VIDEO)_AD_UNIT_ID__' YTIFLYADLibSimple; then
             echo "YT Demo 不得包含 Banner、Reward 或 NativeFeed 接入" >&2
             exit 1
           fi

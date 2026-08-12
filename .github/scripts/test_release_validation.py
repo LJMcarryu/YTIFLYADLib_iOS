@@ -7,6 +7,7 @@ import copy
 import hashlib
 import json
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -594,6 +595,29 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertIn("## 正式发布唯一入口", releasing)
         self.assertIn("scripts/release-orchestrator.py", releasing)
         self.assertIn("底层门禁或故障诊断入口", releasing)
+
+    def test_demo_disabled_format_gate_does_not_reject_splash_slot(self) -> None:
+        source = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        match = re.search(
+            r"grep -R -n -E --exclude-dir=build '([^']+)' YTIFLYADLibSimple",
+            source,
+        )
+        self.assertIsNotNone(match)
+        pattern = re.compile(match.group(1))
+
+        self.assertIsNone(pattern.search("__SPLASH_NATIVE_AD_UNIT_ID__"))
+        for forbidden in (
+            "YTIFLYBannerAd",
+            "YTIFLYRewardVideo",
+            "YTIFLYNativeFeedAd",
+            "__BANNER_AD_UNIT_ID__",
+            "__REWARD_VIDEO_AD_UNIT_ID__",
+            "__TYPED_ONE_NATIVE_AD_UNIT_ID__",
+            "__TYPED_MORE_NATIVE_AD_UNIT_ID__",
+            "__FEED_VIDEO_AD_UNIT_ID__",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertIsNotNone(pattern.search(forbidden))
 
     def test_candidate_uses_final_formal_manifest_and_provenance(self) -> None:
         jobs = self.workflow["jobs"]
