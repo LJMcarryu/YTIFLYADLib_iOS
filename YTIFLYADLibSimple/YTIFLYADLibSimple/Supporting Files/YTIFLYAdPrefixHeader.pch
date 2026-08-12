@@ -1,0 +1,28 @@
+//
+//  YTIFLYAdPrefixHeader.pch
+//  YTIFLYADLibSimple
+//
+//  Created by admin on 28.2.25.
+//
+
+#ifndef YTIFLYAdPrefixHeader_pch
+#define YTIFLYAdPrefixHeader_pch
+
+#import <Availability.h>
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+    #import <UIKit/UIKit.h>
+#endif
+
+#ifndef __OPTIMIZE__
+    #define YTIFLYSampleLogInfo(module, fmt, ...)  NSLog(@"[YTAdSample] [%@] " fmt, module, ##__VA_ARGS__)
+#else
+    #define YTIFLYSampleLogInfo(...)  {}
+#endif
+
+#define __SPLASH_NATIVE_AD_UNIT_ID__     @"D65CC066BF3AE066C48F4A101A30005C"
+#define __SPLASH_VIDEO_AD_UNIT_ID__      @"DDC620929747D6DB85FFEB14AB893F4E"
+#define __INTERSTITIAL_AD_UNIT_ID__      @"22E131CFF097584531EAB3281C40769C"
+
+#endif /* YTIFLYAdPrefixHeader_pch */

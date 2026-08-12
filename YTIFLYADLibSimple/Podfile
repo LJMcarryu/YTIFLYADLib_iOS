@@ -1,0 +1,11 @@
+source 'https://cdn.cocoapods.org/'
+platform :ios, '11.0'
+
+target 'YTIFLYADLibSimple' do
+  use_frameworks!
+  # 优推 YT 媒体定制 SDK（model B 单包静态 framework：仅开屏/插屏，含图片和视频）。
+  # 二进制托管在本仓 GitHub Releases，podspec 经 raw URL 直连；静态库随 app 链接（无需 Embed），
+  # 资源包 YTAdvSDK.bundle 经 podspec s.resources 自动拷入 app，-ObjC 由 podspec 自动注入。
+  # 待发布版本固定为 6.2.3；正式 tag/Release 存在前不可作为远程依赖。
+  pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.2.3/YTIFLYADLib.podspec'
+end

@@ -1,0 +1,1219 @@
+name: CI
+
+run-name: >-
+  ${{ github.event_name == 'release' && format('formal-release:{0}:{1}', github.event.release.id, github.event.release.tag_name) || github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && format('draft-candidate:{0}:{1}:{2}', inputs.candidate_id, inputs.candidate_release_id, inputs.dispatch_nonce) || format('ci:{0}:{1}', github.event_name, github.ref_name) }}
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+
+concurrency:
+  group: >-
+    ${{ github.event_name == 'release' && format('{0}:formal:{1}', github.workflow, github.event.release.tag_name) || github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && format('{0}:candidate:{1}:{2}', github.workflow, inputs.candidate_id, inputs.candidate_release_id) || github.event_name == 'workflow_dispatch' && inputs.release_tag != '' && format('{0}:formal:{1}', github.workflow, inputs.release_tag) || format('{0}:ci:{1}:{2}', github.workflow, github.event_name, github.ref) }}
+  # 同一候选的复验顺序排队，不取消既有证据；候选与正式 Release 使用不同分组。
+  cancel-in-progress: false
+
+'on':
+  push:
+    branches: [main]
+    tags: ['*.*.*']
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      validation_mode:
+        description: 验证模式；草稿候选只允许从精确 release-candidate 分支触发
+        required: true
+        default: repository
+        type: choice
+        options:
+          - repository
+          - draft_candidate
+          - formal_release
+      candidate_tag:
+        description: draft candidate 的版本号；必须等于仓库当前版本
+        required: false
+        default: ''
+        type: string
+      candidate_id:
+        description: release orchestrator 生成的 64 位小写 candidateId
+        required: false
+        default: ''
+        type: string
+      candidate_release_id:
+        description: draft candidate 的十进制 Release ID
+        required: false
+        default: ''
+        type: string
+      dispatch_nonce:
+        description: release orchestrator 生成的 32 位小写 dispatch nonce
+        required: false
+        default: ''
+        type: string
+      release_tag:
+        description: 正式匿名复验 tag；兼容默认 repository 模式下仅填写本字段的旧调用
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  verify-repository:
+    name: 校验分发清单与 Demo 边界
+    runs-on: macos-14
+    timeout-minutes: 30
+    outputs:
+      repository_version: ${{ steps.repository-version.outputs.version }}
+      candidate_commit: ${{ steps.candidate-identity.outputs.commit }}
+      candidate_branch: ${{ steps.candidate-identity.outputs.branch }}
+      release_kind: ${{ steps.release-selection.outputs.kind }}
+      release_tag: ${{ steps.release-selection.outputs.tag }}
+    steps:
+      - name: 校验手动验证模式与触发分支
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          VALIDATION_MODE: ${{ inputs.validation_mode }}
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
+          CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
+          DISPATCH_NONCE: ${{ inputs.dispatch_nonce }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          case "${VALIDATION_MODE}" in
+            repository)
+              test -z "${CANDIDATE_TAG}"
+              test -z "${CANDIDATE_ID}"
+              test -z "${CANDIDATE_RELEASE_ID}"
+              test -z "${DISPATCH_NONCE}"
+              # 兼容改造前只填写 release_tag 的手动正式复验调用。
+              if [[ -n "${RELEASE_TAG}" ]]; then
+                [[ "${RELEASE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              fi
+              ;;
+            draft_candidate)
+              [[ "${CANDIDATE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              [[ "${CANDIDATE_ID}" =~ ^[0-9a-f]{64}$ ]]
+              [[ "${CANDIDATE_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
+              [[ "${DISPATCH_NONCE}" =~ ^[0-9a-f]{32}$ ]]
+              candidate_branch="release-candidate/${CANDIDATE_TAG}-${CANDIDATE_ID}"
+              test "${GITHUB_REF}" = "refs/heads/${candidate_branch}"
+              test "${GITHUB_REF_NAME}" = "${candidate_branch}"
+              test -z "${RELEASE_TAG}"
+              ;;
+            formal_release)
+              test -z "${CANDIDATE_TAG}"
+              test -z "${CANDIDATE_ID}"
+              test -z "${CANDIDATE_RELEASE_ID}"
+              test -z "${DISPATCH_NONCE}"
+              [[ "${RELEASE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              ;;
+            *)
+              echo "未知 validation_mode: ${VALIDATION_MODE}" >&2
+              exit 1
+              ;;
+          esac
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && github.sha || github.event.release.tag_name || github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != '')) && inputs.release_tag || github.ref }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: 运行发布验证离线回归测试
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_*.py' -v
+          python3 - <<'PY'
+          import ast
+          from pathlib import Path
+
+          scripts = sorted(Path(".github/scripts").glob("*.py"))
+          assert scripts, "未找到发布验证 Python 脚本"
+          for script in scripts:
+              ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
+          print(f"Python 语法校验通过: {len(scripts)} 个脚本")
+          PY
+
+      - name: 读取仓库当前版本
+        id: repository-version
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          podspec = Path("YTIFLYADLib.podspec").read_text(encoding="utf-8")
+          match = re.search(r"s\.version\s*=\s*['\"]([^'\"]+)", podspec)
+          assert match, "podspec 缺少版本号"
+          version = match.group(1)
+          assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version), version
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"version={version}\n")
+          print(f"repository version={version}")
+          PY
+
+      - name: 固定 Release 验证选择
+        id: release-selection
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_EVENT_TAG: ${{ github.event.release.tag_name }}
+          VALIDATION_MODE: ${{ inputs.validation_mode }}
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+          FORMAL_TAG: ${{ inputs.release_tag }}
+        run: |
+          kind='none'
+          tag=''
+          if [[ "${EVENT_NAME}" == 'release' ]]; then
+            kind='formal'
+            tag="${RELEASE_EVENT_TAG}"
+          elif [[ "${EVENT_NAME}" == 'workflow_dispatch' && "${VALIDATION_MODE}" == 'draft_candidate' ]]; then
+            kind='draft'
+            tag="${CANDIDATE_TAG}"
+          elif [[ "${EVENT_NAME}" == 'workflow_dispatch' && "${VALIDATION_MODE}" == 'formal_release' ]]; then
+            kind='formal'
+            tag="${FORMAL_TAG}"
+          elif [[ "${EVENT_NAME}" == 'workflow_dispatch' && "${VALIDATION_MODE}" == 'repository' && -n "${FORMAL_TAG}" ]]; then
+            # 兼容旧 workflow_dispatch：只填写 release_tag 即执行正式匿名复验。
+            kind='formal'
+            tag="${FORMAL_TAG}"
+          fi
+          printf 'kind=%s\n' "${kind}" >> "${GITHUB_OUTPUT}"
+          printf 'tag=%s\n' "${tag}" >> "${GITHUB_OUTPUT}"
+
+      - name: 校验版本、清单与 SwiftPM 资源
+        run: |
+          swift package dump-package > /dev/null
+          pod ipc spec YTIFLYADLib.podspec > /tmp/yt-podspec.json
+          python3 - <<'PY'
+          import json
+          import os
+          import plistlib
+          import re
+          from pathlib import Path
+
+          package = Path("Package.swift").read_text(encoding="utf-8")
+          podspec = Path("YTIFLYADLib.podspec").read_text(encoding="utf-8")
+          readme = Path("README.md").read_text(encoding="utf-8")
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          releasing = Path("RELEASING.md").read_text(encoding="utf-8")
+          demo_podfile = Path("YTIFLYADLibSimple/Podfile").read_text(encoding="utf-8")
+          demo_readme = Path("YTIFLYADLibSimple/README.md").read_text(encoding="utf-8")
+          podspec_json = json.loads(
+              Path("/tmp/yt-podspec.json").read_text(encoding="utf-8")
+          )
+          pod_version = re.search(r"s\.version\s*=\s*['\"]([^'\"]+)", podspec).group(1)
+          package_version = re.search(
+              r"/releases/download/([^/]+)/YTIFLYADLib\.xcframework\.zip",
+              package,
+          ).group(1)
+          pod_url_version = re.search(r"/releases/download/([^/]+)/YTIFLYADLib", podspec).group(1)
+          demo_pod_version = re.search(
+              r"YTIFLYADLib_iOS/([^/]+)/YTIFLYADLib\.podspec", demo_podfile
+          ).group(1)
+          assert pod_version == package_version == pod_url_version == demo_pod_version
+          pending_changelog_heading = f"## {pod_version}（待发布）"
+          final_changelog_heading = f"## {pod_version}"
+          assert "## 6.2.3 准备状态" in releasing
+          release_state = releasing
+          assert "AdSupport" in podspec_json.get("frameworks", []), (
+              "podspec 缺少 AdSupport 强链接声明"
+          )
+          assert "AppTrackingTransparency" in podspec_json.get("weak_frameworks", []), (
+              "podspec 缺少 AppTrackingTransparency 弱链接声明"
+          )
+          assert "-ObjC" in podspec_json.get("pod_target_xcconfig", {}).get(
+              "OTHER_LDFLAGS", ""
+          ).split(), "pod target 未声明 -ObjC"
+          assert "-ObjC" in podspec_json.get("user_target_xcconfig", {}).get(
+              "OTHER_LDFLAGS", ""
+          ).split(), "aggregate/user target 未声明 -ObjC"
+
+          checksum = re.search(r'checksum:\s*"([^"]+)"', package).group(1)
+          pending_checksum = "__YTIFLYADLIB_6_2_3_SWIFTPM_CHECKSUM_PENDING__"
+          is_tag_push = os.environ.get("GITHUB_REF_TYPE") == "tag"
+          if is_tag_push:
+              assert os.environ.get("GITHUB_REF_NAME") == pod_version, (
+                  os.environ.get("GITHUB_REF_NAME"), pod_version
+              )
+          if checksum == pending_checksum:
+              assert not is_tag_push, "tag push 不得携带 PENDING checksum"
+              assert pod_version == "6.2.3"
+              assert f"当前清单目标版本：`{pod_version}`（待发布）" in readme
+              assert "正式签名资产、checksum、tag 和 Release 尚未生成" in readme
+              assert "`6.2.3` 尚未发布" in demo_readme
+              assert "进入公开仓发布准备态" in release_state
+              assert "当前不得发布" in release_state
+              assert re.search(
+                  r"^" + re.escape(pending_changelog_heading) + r"\s*$",
+                  changelog,
+                  re.M,
+              )
+              checksum_state = "PENDING（不可发布）"
+          else:
+              assert re.fullmatch(r"[0-9a-f]{64}", checksum)
+              assert checksum != "0" * 64
+              assert checksum != "a3c31e6fc523aa2bb1af71849ba1dc893d94e69ae68246eab4d9d20cbb07232f", (
+                  "6.2.3 不得沿用 6.2.1 checksum"
+              )
+              assert f"当前版本：`{pod_version}`" in readme
+              for stale_marker in (
+                  "发布准备",
+                  "准备态",
+                  "尚未生成",
+                  "最近正式版 `6.2.1`",
+                  "当前正式 `6.2.1`",
+                  "尚不存在的 `6.2.3`",
+                  "待发布 `6.2.3`",
+                  "/6.2.1/YTIFLYADLib.podspec",
+              ):
+                  assert stale_marker not in readme, stale_marker
+              for stale_marker in ("待发布", "准备态"):
+                  assert stale_marker not in demo_readme, stale_marker
+              assert "PENDING" not in package
+              assert f"/{pod_version}/YTIFLYADLib.podspec" in readme
+              assert "最新正式版本仍为 `6.2.1`" not in changelog
+              assert "发布准备内容" not in changelog
+              for stale_marker in (
+                  "进入公开仓准备态",
+                  "尚未完成",
+                  "不得作为正式发布证据",
+                  "替换准备态事实",
+              ):
+                  assert stale_marker not in release_state, stale_marker
+              assert f"`{pod_version}` 正式分发资产" in release_state
+              assert "delivery-manifest.json" in release_state
+              assert re.search(
+                  r"^" + re.escape(final_changelog_heading) + r"\s*$",
+                  changelog,
+                  re.M,
+              )
+              assert pending_changelog_heading not in changelog
+              checksum_state = "已回填"
+          assert 'name: "YTIFLYADLib"' in package
+          assert 'targets: ["YTIFLYADLib", "YTIFLYADLibResources"]' in package
+          assert '.copy("YTAdvSDK.bundle")' in package
+          assert Path("spm/YTIFLYADLibResources/YTIFLYADLibResources.swift").is_file()
+          executable_resources = [
+              path
+              for path in Path("spm/YTIFLYADLibResources/YTAdvSDK.bundle").rglob("*")
+              if path.is_file() and path.stat().st_mode & 0o111
+          ]
+          assert not executable_resources, executable_resources
+          privacy_path = Path("spm/YTIFLYADLibResources/YTAdvSDK.bundle/PrivacyInfo.xcprivacy")
+          assert privacy_path.is_file()
+          tracking_domains = plistlib.loads(
+              privacy_path.read_bytes()
+          )["NSPrivacyTrackingDomains"]
+          assert "msdk.voiceads.cn" in tracking_domains
+          assert "youku-sdk-grey.voiceads.cn" not in tracking_domains
+          print(f"version={pod_version}, checksum={checksum_state}: {checksum}")
+          PY
+
+      - name: 读取 A/B 发布状态
+        id: provenance-state
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          states = re.findall(
+              r"^- `releaseState`：`(PENDING|FORMAL)`$",
+              Path("RELEASING.md").read_text(encoding="utf-8"),
+              re.M,
+          )
+          assert len(states) == 1, states
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"state={states[0]}\n")
+          PY
+
+      - name: 普通分支校验 PENDING A/B provenance
+        if: steps.provenance-state.outputs.state == 'PENDING' && github.ref_type != 'tag' && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != '')))
+        run: |
+          python3 .github/scripts/verify_private_release_provenance.py \
+            --readme README.md \
+            --changelog CHANGELOG.md \
+            --releasing RELEASING.md \
+            --skip-compare
+
+      - name: Candidate/正式 tag/Release 明确拒绝 PENDING A/B
+        if: steps.provenance-state.outputs.state == 'PENDING' && (github.ref_type == 'tag' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
+        run: |
+          echo 'draft candidate 与正式 tag/Release 不得保留 PENDING releaseState 或 A/B 占位' >&2
+          exit 1
+
+      - name: Draft candidate 明确要求最终 FORMAL A/B
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && steps.provenance-state.outputs.state != 'FORMAL'
+        run: |
+          echo 'draft candidate 必须从已回填真实 checksum 和 A/B 的最终 FORMAL 提交执行' >&2
+          exit 1
+
+      - name: 校验 draft candidate 身份与候选分支触发 SHA
+        id: candidate-identity
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate'
+        env:
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
+          CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
+          DISPATCH_NONCE: ${{ inputs.dispatch_nonce }}
+          REPOSITORY_VERSION: ${{ steps.repository-version.outputs.version }}
+        run: |
+          test "${CANDIDATE_TAG}" = "${REPOSITORY_VERSION}"
+          [[ "${CANDIDATE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "${CANDIDATE_ID}" =~ ^[0-9a-f]{64}$ ]]
+          [[ "${CANDIDATE_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
+          [[ "${DISPATCH_NONCE}" =~ ^[0-9a-f]{32}$ ]]
+          candidate_branch="release-candidate/${CANDIDATE_TAG}-${CANDIDATE_ID}"
+          test "${GITHUB_REF}" = "refs/heads/${candidate_branch}"
+          test "${GITHUB_REF_NAME}" = "${candidate_branch}"
+          head_commit="$(git rev-parse HEAD)"
+          test "${head_commit}" = "${GITHUB_SHA}"
+          test -z "$(git status --porcelain)"
+          printf 'commit=%s\n' "${head_commit}" >> "${GITHUB_OUTPUT}"
+          printf 'branch=%s\n' "${candidate_branch}" >> "${GITHUB_OUTPUT}"
+
+      - name: 固定 draft candidate 本地分发清单
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate'
+        env:
+          CANDIDATE_TAG: ${{ inputs.candidate_tag }}
+        run: |
+          swift package dump-package > /dev/null
+          pod ipc spec YTIFLYADLib.podspec > "${RUNNER_TEMP}/yt-candidate-podspec.json"
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["CANDIDATE_TAG"]
+          package = Path("Package.swift").read_text(encoding="utf-8")
+          podspec = Path("YTIFLYADLib.podspec").read_text(encoding="utf-8")
+          documents = "\n".join(
+              Path(name).read_text(encoding="utf-8")
+              for name in ("README.md", "CHANGELOG.md", "RELEASING.md")
+          )
+          podspec_json = json.loads(
+              Path(os.environ["RUNNER_TEMP"], "yt-candidate-podspec.json").read_text(
+                  encoding="utf-8"
+              )
+          )
+          assert f"/releases/download/{version}/YTIFLYADLib.xcframework.zip" in package
+          assert f"/releases/download/{version}/YTIFLYADLib-{version}.zip" in podspec
+          checksum = re.search(r'checksum:\s*"([^"]+)"', package).group(1)
+          assert re.fullmatch(r"[0-9a-f]{64}", checksum), checksum
+          assert checksum != "0" * 64
+          assert podspec_json["version"] == version
+          assert podspec_json["frameworks"] == ["AdSupport"]
+          assert podspec_json["weak_frameworks"] == ["AppTrackingTransparency"]
+          for capability in ("Splash", "Interstitial"):
+              assert capability in documents, capability
+          assert "https://msdk.voiceads.cn/sdk/req" in documents
+          assert len(re.findall(r"`releaseState`：`FORMAL`", documents)) == 3
+          PY
+          test -z "$(git status --porcelain)"
+
+      - name: 校验 FORMAL A/B provenance 文档
+        if: steps.provenance-state.outputs.state == 'FORMAL' && github.ref_type != 'tag' && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))) && !(github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate')
+        run: |
+          python3 .github/scripts/verify_private_release_provenance.py \
+            --readme README.md \
+            --changelog CHANGELOG.md \
+            --releasing RELEASING.md \
+            --skip-compare
+
+      - name: Candidate/正式 tag/Release 校验 FORMAL A/B provenance（私有仓 compare）
+        if: steps.provenance-state.outputs.state == 'FORMAL' && (github.ref_type == 'tag' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
+        env:
+          IFLY_PRIVATE_SOURCE_TOKEN: ${{ secrets.IFLY_PRIVATE_SOURCE_TOKEN }}
+        run: |
+          python3 .github/scripts/verify_private_release_provenance.py \
+            --readme README.md \
+            --changelog CHANGELOG.md \
+            --releasing RELEASING.md
+
+      - name: Tag push 校验 annotated tag 与 checkout 绑定
+        if: github.ref_type == 'tag'
+        run: |
+          test "${GITHUB_REF_NAME}" = '6.2.3'
+          test -z "$(git status --porcelain)"
+          test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = 'tag'
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "${GITHUB_REF_NAME}^{commit}")"
+          test "$(git describe --tags --exact-match HEAD)" = "${GITHUB_REF_NAME}"
+
+      - name: 校验 Demo 只含开屏和插屏示例
+        run: |
+          test -f YTIFLYADLibSimple/YTIFLYADLibSimple/biz/splash/YTIFLYSplashViewController.m
+          test -f YTIFLYADLibSimple/YTIFLYADLibSimple/biz/interstitial/YTIFLYInterstitialViewController.m
+          test ! -d YTIFLYADLibSimple/YTIFLYADLibSimple/biz/banner
+          test ! -d YTIFLYADLibSimple/YTIFLYADLibSimple/biz/reward
+          test ! -d YTIFLYADLibSimple/YTIFLYADLibSimple/biz/native
+          if grep -R -n -E --exclude-dir=build 'YTIFLY(Banner|Reward|NativeFeed)|__BANNER_|__.*NATIVE_|__FEED_' YTIFLYADLibSimple; then
+            echo "YT Demo 不得包含 Banner、Reward 或 NativeFeed 接入" >&2
+            exit 1
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+
+          home = Path(
+              "YTIFLYADLibSimple/YTIFLYADLibSimple/ViewController.m"
+          ).read_text(encoding="utf-8")
+          for title in ("开屏广告", "插屏广告"):
+              assert f'@"{title}"' in home, title
+          for forbidden in ("Banner", "NativeFeed", "信息流", "激励"):
+              assert forbidden not in home, forbidden
+          assert home.count('@{@"title"') == 2
+
+          sources = "\n".join(
+              path.read_text(encoding="utf-8")
+              for path in Path("YTIFLYADLibSimple/YTIFLYADLibSimple").rglob("*.[mh]")
+          )
+          for required in (
+              "YTIFLYSplashAd",
+              "YTIFLYInterstitialAd",
+              "ytifly_loadAdWithRequestConfig:",
+              "ytifly_showAdFromRootViewController:",
+              "ytifly_destroy",
+          ):
+              assert required in sources, required
+          PY
+
+  verify-release-assets:
+    name: 校验 Release 精确资产与分发契约
+    if: needs.verify-repository.outputs.release_kind == 'draft' || needs.verify-repository.outputs.release_kind == 'formal'
+    needs: [verify-repository]
+    runs-on: macos-15
+    timeout-minutes: 55
+    permissions:
+      contents: read
+    outputs:
+      release_tag: ${{ steps.release-context.outputs.tag }}
+      release_kind: ${{ steps.release-context.outputs.kind }}
+      checkout_commit: ${{ steps.release-context.outputs.commit }}
+      candidate_branch: ${{ steps.release-context.outputs.branch }}
+      asset_identity: ${{ steps.asset-identity.outputs.identity }}
+    env:
+      EXPECTED_AD_REQUEST_URL: https://msdk.voiceads.cn/sdk/req
+      RELEASE_KIND: ${{ needs.verify-repository.outputs.release_kind }}
+      RELEASE_TAG: ${{ needs.verify-repository.outputs.release_tag }}
+      REPOSITORY_VERSION: ${{ needs.verify-repository.outputs.repository_version }}
+      CANDIDATE_ID: ${{ inputs.candidate_id }}
+      CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
+      CANDIDATE_BRANCH: ${{ needs.verify-repository.outputs.candidate_branch }}
+      EXPECTED_COMMIT: ${{ needs.verify-repository.outputs.candidate_commit }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_KIND == 'draft' && env.EXPECTED_COMMIT || env.RELEASE_TAG }}
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - name: 创建隔离的资产验证路径
+        run: |
+          printf 'ASSET_ROOT=%s\n' "${RUNNER_TEMP}/yt-release-assets" >> "${GITHUB_ENV}"
+          printf 'RELEASE_METADATA=%s\n' "${RUNNER_TEMP}/yt-release-metadata.json" >> "${GITHUB_ENV}"
+
+      - name: 固定本次 Release 验证上下文
+        id: release-context
+        run: |
+          printf 'tag=%s\n' "${RELEASE_TAG}" >> "${GITHUB_OUTPUT}"
+          printf 'kind=%s\n' "${RELEASE_KIND}" >> "${GITHUB_OUTPUT}"
+          printf 'commit=%s\n' "$(git rev-parse HEAD)" >> "${GITHUB_OUTPUT}"
+          printf 'branch=%s\n' "${CANDIDATE_BRANCH}" >> "${GITHUB_OUTPUT}"
+
+      - name: 校验 CI Xcode 与 Release 身份
+        run: |
+          xcodebuild -version
+          test "${RELEASE_TAG}" = '6.2.3'
+          test "${RELEASE_TAG}" = "${REPOSITORY_VERSION}"
+          test -z "$(git status --porcelain)"
+          if [[ "${RELEASE_KIND}" == 'draft' ]]; then
+            [[ "${CANDIDATE_ID}" =~ ^[0-9a-f]{64}$ ]]
+            [[ "${EXPECTED_COMMIT}" =~ ^[0-9a-f]{40}$ ]]
+            test "$(git rev-parse HEAD)" = "${EXPECTED_COMMIT}"
+          else
+            test "$(git cat-file -t "refs/tags/${RELEASE_TAG}")" = 'tag'
+            test "$(git rev-parse HEAD)" = "$(git rev-parse "${RELEASE_TAG}^{commit}")"
+            test "$(git describe --tags --exact-match HEAD)" = "${RELEASE_TAG}"
+          fi
+          python3 - <<'PY'
+          import re
+          import subprocess
+
+          output = subprocess.check_output(["xcodebuild", "-version"], text=True)
+          match = re.search(r"Xcode\s+(\d+)(?:\.\d+)*", output)
+          assert match and int(match.group(1)) >= 16, output
+          PY
+
+      - name: 使用最小权限下载 draft candidate 精确资产集
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && github.ref == format('refs/heads/release-candidate/{0}-{1}', inputs.candidate_tag, inputs.candidate_id) && needs.verify-repository.outputs.release_kind == 'draft' && needs.verify-repository.outputs.candidate_commit != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          test ! -e "${ASSET_ROOT}"
+          test ! -e "${RELEASE_METADATA}"
+          python3 .github/scripts/download_draft_release.py \
+            --repository "${GITHUB_REPOSITORY}" \
+            --tag "${RELEASE_TAG}" \
+            --candidate-id "${CANDIDATE_ID}" \
+            --release-id "${CANDIDATE_RELEASE_ID}" \
+            --target-branch "${CANDIDATE_BRANCH}" \
+            --expected-commit "${EXPECTED_COMMIT}" \
+            --destination "${ASSET_ROOT}" \
+            --metadata-output "${RELEASE_METADATA}"
+
+      - name: 匿名下载本次 Release 的精确资产集
+        if: needs.verify-repository.outputs.release_kind == 'formal' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != '')) && env.RELEASE_KIND == 'formal'))
+        run: |
+          test ! -e "${ASSET_ROOT}"
+          test ! -e "${RELEASE_METADATA}"
+          env \
+            -u GH_TOKEN \
+            -u GITHUB_TOKEN \
+            -u GITHUB_AUTH_TOKEN \
+            -u IFLY_PRIVATE_SOURCE_TOKEN \
+            python3 .github/scripts/download_release_anonymously.py \
+              --repository "${GITHUB_REPOSITORY}" \
+              --tag "${RELEASE_TAG}" \
+              --destination "${ASSET_ROOT}" \
+              --metadata-output "${RELEASE_METADATA}"
+
+      - name: 校验下载资产与私有源码 A/B provenance
+        env:
+          IFLY_PRIVATE_SOURCE_TOKEN: ${{ secrets.IFLY_PRIVATE_SOURCE_TOKEN }}
+        run: |
+          python3 .github/scripts/verify_private_release_provenance.py \
+            --readme README.md \
+            --changelog CHANGELOG.md \
+            --releasing RELEASING.md \
+            --manifest "${ASSET_ROOT}/delivery-manifest.json" \
+            --release-metadata "${RELEASE_METADATA}"
+
+      - name: 校验 checksum、双包结构、能力、资源和请求地址
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import plistlib
+          import re
+          import subprocess
+          import zipfile
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          root = Path(os.environ["ASSET_ROOT"])
+          manifest = json.loads((root / "delivery-manifest.json").read_text(encoding="utf-8"))
+          version = manifest["version"]
+          assert version == os.environ["RELEASE_TAG"], "Release tag 与 manifest 版本不一致"
+          assert manifest["distribution"] == "YT"
+          assert manifest["moduleName"] == "YTIFLYADLib"
+          assert manifest["frameworkBundleIdentifier"] == "com.gameley.www.YouTuiAdSDK"
+          assert manifest["variant"] == "YTSplashInterstitial"
+          assert manifest["capabilities"] == ["Splash", "Interstitial"]
+          assert manifest["videoEnabled"] is True
+          assert manifest["sourceBuild"]["customAdRequestURL"] is False
+          assert manifest["sourceBuild"]["sdkVersion"] == version
+          assert manifest["sourceBuild"]["sourceTreeClean"] is True
+          assert manifest["sourceBuild"]["sourceCommit"] == manifest["sourceCommit"]
+          assert manifest["sourceBuild"]["library"] == "YTIFLYADLib"
+          assert manifest["sourceBuild"]["frameworkBundleIdentifier"] == "com.gameley.www.YouTuiAdSDK"
+          enabled_macros = set(manifest["sourceBuild"]["enabledMacros"])
+          assert {"IFLYAd_COMPILE_SPLASH", "IFLYAd_COMPILE_INTERSTITIAL"} <= enabled_macros
+          assert not ({"IFLYAd_COMPILE_BANNER", "IFLYAd_COMPILE_REWARD", "IFLYAd_COMPILE_NATIVE_FEED"} & enabled_macros)
+          xcode_version = tuple(
+              int(item)
+              for item in re.search(r"\d+(?:\.\d+)+", manifest["sourceBuild"]["xcodeVersion"])
+              .group(0)
+              .split(".")
+          )
+          assert xcode_version <= (26, 2), f"正式 SDK 使用了超上限 Xcode: {xcode_version}"
+
+          expected_url = os.environ.get("EXPECTED_AD_REQUEST_URL", "").strip()
+          assert expected_url, "正式请求地址未配置"
+          assert manifest["adRequestURL"] == expected_url
+          assert manifest["sourceBuild"]["adRequestURL"] == expected_url
+          parsed = urlsplit(expected_url)
+          assert parsed.scheme == "https" and parsed.hostname
+          assert expected_url == "https://msdk.voiceads.cn/sdk/req"
+          assert not parsed.hostname.endswith((".invalid", ".example", ".test"))
+          assert parsed.hostname not in {"localhost", "127.0.0.1", "::1"}
+          expected_tracking_host = parsed.hostname.lower()
+
+          combined_name = f"YTIFLYADLib-{version}.zip"
+          exact_assets = {
+              "YTIFLYADLib.xcframework.zip",
+              combined_name,
+              "checksums.txt",
+              "delivery-manifest.json",
+          }
+          actual_assets = {item.name for item in root.iterdir() if item.is_file()}
+          assert actual_assets == exact_assets, (actual_assets, exact_assets)
+
+          assets = {item["name"]: item for item in manifest["assets"]}
+          assert set(assets) == {"YTIFLYADLib.xcframework.zip", combined_name}
+          for name, metadata in assets.items():
+              path = root / name
+              actual = hashlib.sha256(path.read_bytes()).hexdigest()
+              assert actual == metadata["sha256"], name
+
+          checksum_lines = [
+              line.strip()
+              for line in (root / "checksums.txt").read_text(encoding="utf-8").splitlines()
+              if line.strip()
+          ]
+          assert len(checksum_lines) == 2, checksum_lines
+          spm_match = re.fullmatch(
+              r"SPM  (\S+)  spm_checksum=([0-9a-f]{64})  sha256=([0-9a-f]{64})",
+              checksum_lines[0],
+          )
+          combined_match = re.fullmatch(
+              r"Combined  (\S+)  sha256=([0-9a-f]{64})",
+              checksum_lines[1],
+          )
+          assert spm_match, checksum_lines[0]
+          assert combined_match, checksum_lines[1]
+          assert spm_match.group(1) == "YTIFLYADLib.xcframework.zip"
+          assert combined_match.group(1) == combined_name
+          assert spm_match.group(2) == assets["YTIFLYADLib.xcframework.zip"]["swiftPackageChecksum"]
+          assert spm_match.group(3) == assets["YTIFLYADLib.xcframework.zip"]["sha256"]
+          assert combined_match.group(2) == assets[combined_name]["sha256"]
+
+          computed_spm_checksum = subprocess.check_output(
+              [
+                  "swift",
+                  "package",
+                  "compute-checksum",
+                  str(root / "YTIFLYADLib.xcframework.zip"),
+              ],
+              text=True,
+          ).strip()
+          assert computed_spm_checksum == spm_match.group(2)
+
+          package = Path("Package.swift").read_text(encoding="utf-8")
+          podspec = Path("YTIFLYADLib.podspec").read_text(encoding="utf-8")
+          declared_checksum = re.search(r'checksum:\s*"([^"]+)"', package).group(1)
+          assert os.environ["RELEASE_KIND"] in {"draft", "formal"}
+          assert re.fullmatch(r"[0-9a-f]{64}", declared_checksum)
+          assert declared_checksum == assets["YTIFLYADLib.xcframework.zip"]["swiftPackageChecksum"]
+          assert declared_checksum == assets["YTIFLYADLib.xcframework.zip"]["sha256"]
+          assert declared_checksum == computed_spm_checksum
+          assert f"/releases/download/{version}/YTIFLYADLib.xcframework.zip" in package
+          assert f"s.version = '{version}'" in podspec
+          assert f"/releases/download/{version}/{combined_name}" in podspec
+
+          spm_out = root / "spm"
+          combined_out = root / "combined"
+          with zipfile.ZipFile(root / "YTIFLYADLib.xcframework.zip") as archive:
+              archive.extractall(spm_out)
+          with zipfile.ZipFile(root / combined_name) as archive:
+              archive.extractall(combined_out)
+
+          def top_level_entries(path):
+              return {
+                  item.name
+                  for item in path.iterdir()
+                  if item.name != "__MACOSX" and not item.name.startswith("._")
+              }
+
+          assert top_level_entries(spm_out) == {"YTIFLYADLib.xcframework"}
+          assert top_level_entries(combined_out) == {
+              "YTIFLYADLib.xcframework",
+              "YTAdvSDK.bundle",
+              "LICENSE",
+          }
+
+          spm_frameworks = list(spm_out.glob("YTIFLYADLib.xcframework"))
+          combined_frameworks = list(combined_out.glob("YTIFLYADLib.xcframework"))
+          assert len(spm_frameworks) == len(combined_frameworks) == 1
+          assert (combined_out / "YTAdvSDK.bundle/PrivacyInfo.xcprivacy").is_file()
+          assert (combined_out / "LICENSE").is_file()
+
+          def tree_hashes(path):
+              return {
+                  file.relative_to(path).as_posix(): hashlib.sha256(file.read_bytes()).hexdigest()
+                  for file in path.rglob("*")
+                  if file.is_file() and not file.name.startswith("._") and file.name != ".DS_Store"
+              }
+
+          assert tree_hashes(spm_frameworks[0]) == tree_hashes(combined_frameworks[0])
+          repo_bundle = Path("spm/YTIFLYADLibResources/YTAdvSDK.bundle")
+          assert tree_hashes(repo_bundle) == tree_hashes(combined_out / "YTAdvSDK.bundle")
+          privacy_manifests = [
+              *spm_frameworks[0].rglob("PrivacyInfo.xcprivacy"),
+              *combined_frameworks[0].rglob("PrivacyInfo.xcprivacy"),
+              combined_out / "YTAdvSDK.bundle/PrivacyInfo.xcprivacy",
+              repo_bundle / "PrivacyInfo.xcprivacy",
+          ]
+          assert all(path.is_file() for path in privacy_manifests)
+          stale_tracking_hosts = {"youku-sdk-grey.voiceads.cn", "youku-sdk.voiceads.cn"}
+          for privacy_manifest in privacy_manifests:
+              privacy = plistlib.loads(privacy_manifest.read_bytes())
+              domains = {
+                  item.lower() for item in privacy.get("NSPrivacyTrackingDomains", [])
+              }
+              assert expected_tracking_host in domains, privacy_manifest
+              assert not (stale_tracking_hosts & domains), privacy_manifest
+
+          required_headers = {
+              "IFLYSplashAd.h",
+              "IFLYInterstitialAd.h",
+          }
+          denied_headers = {
+              "IFLYBannerAd.h",
+              "IFLYRewardVideoAd.h",
+              "IFLYNativeFeedAd.h",
+              "IFLYNativeFeedAdData.h",
+          }
+          previous_urls = {
+              "https://youku-sdk-grey.voiceads.cn/sdk/req",
+              "https://youku-sdk.voiceads.cn/sdk/req",
+              "https://youku-sdk.voiceads.cn/ad/request",
+          }
+          team_ids = set()
+
+          for framework in (spm_frameworks[0], combined_frameworks[0]):
+              headers = {path.name for path in framework.rglob("Headers/*.h")}
+              assert required_headers <= headers
+              assert not (denied_headers & headers)
+              umbrella_headers = list(framework.rglob("Headers/YTIFLYADLib.h"))
+              assert len(umbrella_headers) == 2
+              assert all(
+                  "YTIFLYSplashAd" in path.read_text(encoding="utf-8")
+                  and "YTIFLYInterstitialAd" in path.read_text(encoding="utf-8")
+                  for path in umbrella_headers
+              )
+
+              binaries = list(framework.rglob("YTIFLYADLib.framework/YTIFLYADLib"))
+              assert len(binaries) == 2, [str(item) for item in binaries]
+              device_arm64 = simulator_arm64 = simulator_x86_64 = False
+              for binary in binaries:
+                  framework_dir = binary.parent
+                  subprocess.check_call(
+                      ["codesign", "--verify", "--strict", "--verbose=2", str(framework_dir)]
+                  )
+                  signature = subprocess.check_output(
+                      ["codesign", "-d", "--verbose=4", str(framework_dir)],
+                      text=True,
+                      stderr=subprocess.STDOUT,
+                  )
+                  assert "Signature=adhoc" not in signature
+                  team_match = re.search(r"(?m)^TeamIdentifier=(.+)$", signature)
+                  assert team_match and team_match.group(1).strip().lower() not in {
+                      "",
+                      "not set",
+                      "none",
+                  }
+                  team_ids.add(team_match.group(1).strip())
+
+                  text = subprocess.check_output(["strings", str(binary)], text=True)
+                  lines = set(text.splitlines())
+                  assert expected_url in lines
+                  assert not (previous_urls & lines)
+                  assert version in lines
+                  for selector in (
+                      "ytifly_loadAd",
+                      "ytifly_loadAdWithServerBiddingToken:",
+                      "ytifly_showAdFromRootViewController:",
+                      "ytifly_showAdFromRootViewController:config:",
+                      "ytifly_destroy",
+                      "ytifly_isAdValid",
+                  ):
+                      assert selector in lines, selector
+                  symbols = subprocess.check_output(
+                      ["nm", "-g", str(binary)], text=True, errors="replace"
+                  )
+                  assert "_OBJC_CLASS_$_YTIFLYSplashAd" in symbols
+                  assert "_OBJC_CLASS_$_YTIFLYInterstitialAd" in symbols
+                  for denied_symbol in (
+                      "_OBJC_CLASS_$_YTIFLYBanner",
+                      "_OBJC_CLASS_$_YTIFLYRewardVideo",
+                      "_OBJC_CLASS_$_YTIFLYNativeFeed",
+                  ):
+                      assert denied_symbol not in symbols, denied_symbol
+
+                  architectures = set(
+                      subprocess.check_output(["lipo", "-archs", str(binary)], text=True).split()
+                  )
+                  is_simulator = "simulator" in binary.as_posix()
+                  if is_simulator:
+                      simulator_arm64 |= "arm64" in architectures
+                      simulator_x86_64 |= "x86_64" in architectures
+                  else:
+                      device_arm64 |= "arm64" in architectures
+
+                  info_path = binary.parent / "Info.plist"
+                  info = plistlib.loads(info_path.read_bytes())
+                  assert info["MinimumOSVersion"] == "11.0"
+                  assert info["CFBundleShortVersionString"] == version
+                  assert info["CFBundleIdentifier"] == "com.gameley.www.YouTuiAdSDK"
+                  assert info["CFBundleExecutable"] == "YTIFLYADLib"
+              assert device_arm64 and simulator_arm64 and simulator_x86_64
+          assert len(team_ids) == 1, f"framework 切片 TeamIdentifier 不一致: {team_ids}"
+
+          print(f"release {version} validated")
+          PY
+
+      - name: 固定公共前置门禁的四资产内容指纹
+        id: asset-identity
+        run: |
+          python3 .github/scripts/release_asset_identity.py \
+            --directory "${ASSET_ROOT}" \
+            --tag "${RELEASE_TAG}" \
+            --github-output
+
+  verify-cocoapods-consumer:
+    name: 干净缓存消费 CocoaPods 与 Demo
+    needs: [verify-release-assets]
+    runs-on: macos-15
+    timeout-minutes: 55
+    permissions:
+      contents: read
+    env:
+      RELEASE_KIND: ${{ needs.verify-release-assets.outputs.release_kind }}
+      RELEASE_TAG: ${{ needs.verify-release-assets.outputs.release_tag }}
+      CHECKOUT_COMMIT: ${{ needs.verify-release-assets.outputs.checkout_commit }}
+      EXPECTED_ASSET_IDENTITY: ${{ needs.verify-release-assets.outputs.asset_identity }}
+      CANDIDATE_ID: ${{ inputs.candidate_id }}
+      CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
+      CANDIDATE_BRANCH: ${{ needs.verify-release-assets.outputs.candidate_branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_COMMIT }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: 创建 CocoaPods 隔离消费路径
+        run: |
+          printf 'ASSET_ROOT=%s\n' "${RUNNER_TEMP}/yt-pod-assets" >> "${GITHUB_ENV}"
+          printf 'RELEASE_METADATA=%s\n' "${RUNNER_TEMP}/yt-pod-release.json" >> "${GITHUB_ENV}"
+          printf 'CONSUMER_ROOT=%s\n' "${RUNNER_TEMP}/yt-pod-consumer" >> "${GITHUB_ENV}"
+          printf 'CP_HOME_DIR=%s\n' "${RUNNER_TEMP}/yt-cocoapods-home" >> "${GITHUB_ENV}"
+          printf 'CP_CACHE_DIR=%s\n' "${RUNNER_TEMP}/yt-cocoapods-cache" >> "${GITHUB_ENV}"
+          printf 'POD_DERIVED_DATA=%s\n' "${RUNNER_TEMP}/yt-pod-derived" >> "${GITHUB_ENV}"
+          printf 'POD_BUILD_SETTINGS=%s\n' "${RUNNER_TEMP}/yt-pod-build-settings.json" >> "${GITHUB_ENV}"
+
+      - name: 下载 CocoaPods 使用的 draft candidate 资产
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && github.ref == format('refs/heads/release-candidate/{0}-{1}', inputs.candidate_tag, inputs.candidate_id) && needs.verify-release-assets.outputs.release_kind == 'draft' && needs.verify-release-assets.outputs.checkout_commit != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 .github/scripts/download_draft_release.py \
+            --repository "${GITHUB_REPOSITORY}" \
+            --tag "${RELEASE_TAG}" \
+            --candidate-id "${CANDIDATE_ID}" \
+            --release-id "${CANDIDATE_RELEASE_ID}" \
+            --target-branch "${CANDIDATE_BRANCH}" \
+            --expected-commit "${CHECKOUT_COMMIT}" \
+            --destination "${ASSET_ROOT}" \
+            --metadata-output "${RELEASE_METADATA}"
+
+      - name: 匿名下载 CocoaPods 使用的正式 Release 资产
+        if: needs.verify-release-assets.outputs.release_kind == 'formal' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
+        run: |
+          env \
+            -u GH_TOKEN \
+            -u GITHUB_TOKEN \
+            -u GITHUB_AUTH_TOKEN \
+            -u IFLY_PRIVATE_SOURCE_TOKEN \
+            python3 .github/scripts/download_release_anonymously.py \
+              --repository "${GITHUB_REPOSITORY}" \
+              --tag "${RELEASE_TAG}" \
+              --destination "${ASSET_ROOT}" \
+              --metadata-output "${RELEASE_METADATA}"
+
+      - name: 核对 CocoaPods 下载与公共前置资产完全一致
+        run: |
+          python3 .github/scripts/release_asset_identity.py \
+            --directory "${ASSET_ROOT}" \
+            --tag "${RELEASE_TAG}" \
+            --expected "${EXPECTED_ASSET_IDENTITY}"
+
+      - name: 从全新 CocoaPods 缓存消费并编译 Demo
+        run: |
+          test ! -e "${CONSUMER_ROOT}"
+          test ! -e "${CP_HOME_DIR}"
+          test ! -e "${CP_CACHE_DIR}"
+          test ! -e "${POD_DERIVED_DATA}"
+          mkdir -p "${CONSUMER_ROOT}/combined" "${CP_HOME_DIR}" "${CP_CACHE_DIR}"
+          /usr/bin/ditto -x -k \
+            "${ASSET_ROOT}/YTIFLYADLib-${RELEASE_TAG}.zip" \
+            "${CONSUMER_ROOT}/combined"
+          rsync -a \
+            --exclude='Pods' \
+            --exclude='build' \
+            --exclude='Podfile.lock' \
+            --exclude='YTIFLYADLibSimple.xcworkspace' \
+            --exclude='xcuserdata' \
+            YTIFLYADLibSimple/ "${CONSUMER_ROOT}/YTIFLYADLibSimple/"
+          demo_root="${CONSUMER_ROOT}/YTIFLYADLibSimple"
+          test ! -e "${demo_root}/Pods"
+          test ! -e "${demo_root}/Podfile.lock"
+          test ! -e "${demo_root}/YTIFLYADLibSimple.xcworkspace"
+          cp YTIFLYADLib.podspec "${CONSUMER_ROOT}/combined/YTIFLYADLib.podspec"
+          cat > "${demo_root}/Podfile" <<EOF
+          platform :ios, '11.0'
+          target 'YTIFLYADLibSimple' do
+            use_frameworks!
+            pod 'YTIFLYADLib', :path => '${CONSUMER_ROOT}/combined'
+          end
+          EOF
+          test -z "$(find "${CP_HOME_DIR}" -mindepth 1 -print -quit)"
+          test -z "$(find "${CP_CACHE_DIR}" -mindepth 1 -print -quit)"
+          pod cache clean YTIFLYADLib --all
+          pod install --project-directory="${demo_root}" --no-repo-update
+          xcodebuild build \
+            -workspace "${demo_root}/YTIFLYADLibSimple.xcworkspace" \
+            -scheme YTIFLYADLibSimple \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "${POD_DERIVED_DATA}" \
+            CODE_SIGNING_ALLOWED=NO
+
+          xcodebuild \
+            -workspace "${demo_root}/YTIFLYADLibSimple.xcworkspace" \
+            -scheme YTIFLYADLibSimple \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath "${POD_DERIVED_DATA}" \
+            -showBuildSettings \
+            -json > "${POD_BUILD_SETTINGS}"
+
+          python3 - <<'PY'
+          import json
+          import os
+          import shlex
+          from pathlib import Path
+
+          records = json.loads(
+              Path(os.environ["POD_BUILD_SETTINGS"]).read_text(encoding="utf-8")
+          )
+          apps = [item for item in records if item.get("target") == "YTIFLYADLibSimple"]
+          if len(apps) != 1:
+              raise SystemExit(f"无法唯一定位最终 App build settings: {len(apps)}")
+          flags = apps[0].get("buildSettings", {}).get("OTHER_LDFLAGS", "")
+          if "-ObjC" not in shlex.split(flags):
+              raise SystemExit(f"最终 App OTHER_LDFLAGS 未包含 -ObjC: {flags}")
+          print(f"OK 最终 App OTHER_LDFLAGS: {flags}")
+          PY
+
+      - name: 校验 CocoaPods 最终链接的 IDFA 系统框架依赖
+        run: |
+          python3 .github/scripts/verify_linked_idfa_frameworks.py \
+            --description 'CocoaPods Demo' \
+            --binary "${POD_DERIVED_DATA}/Build/Products/Debug-iphonesimulator/YTIFLYADLibSimple.app/YTIFLYADLibSimple"
+
+  verify-swiftpm-consumer:
+    name: 干净缓存消费 SwiftPM 产品与资源
+    needs: [verify-release-assets]
+    runs-on: macos-15
+    timeout-minutes: 55
+    permissions:
+      contents: read
+    env:
+      RELEASE_KIND: ${{ needs.verify-release-assets.outputs.release_kind }}
+      RELEASE_TAG: ${{ needs.verify-release-assets.outputs.release_tag }}
+      CHECKOUT_COMMIT: ${{ needs.verify-release-assets.outputs.checkout_commit }}
+      EXPECTED_ASSET_IDENTITY: ${{ needs.verify-release-assets.outputs.asset_identity }}
+      CANDIDATE_ID: ${{ inputs.candidate_id }}
+      CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
+      CANDIDATE_BRANCH: ${{ needs.verify-release-assets.outputs.candidate_branch }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_COMMIT }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: 创建 SwiftPM 隔离消费路径
+        run: |
+          printf 'ASSET_ROOT=%s\n' "${RUNNER_TEMP}/yt-spm-assets" >> "${GITHUB_ENV}"
+          printf 'RELEASE_METADATA=%s\n' "${RUNNER_TEMP}/yt-spm-release.json" >> "${GITHUB_ENV}"
+          printf 'SPM_ROOT=%s\n' "${RUNNER_TEMP}/yt-spm-consumer" >> "${GITHUB_ENV}"
+          printf 'SPM_DERIVED_DATA=%s\n' "${RUNNER_TEMP}/yt-spm-derived" >> "${GITHUB_ENV}"
+          printf 'SPM_CLONES=%s\n' "${RUNNER_TEMP}/yt-spm-clones" >> "${GITHUB_ENV}"
+          printf 'SPM_PACKAGE_CACHE=%s\n' "${RUNNER_TEMP}/yt-spm-package-cache" >> "${GITHUB_ENV}"
+          printf 'SPM_MODULE_CACHE=%s\n' "${RUNNER_TEMP}/yt-spm-module-cache" >> "${GITHUB_ENV}"
+          printf 'SPM_CONSUMER_BINARY=%s\n' "${RUNNER_TEMP}/yt-spm-minimal-consumer" >> "${GITHUB_ENV}"
+
+      - name: 下载 SwiftPM 使用的 draft candidate 资产
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && github.ref == format('refs/heads/release-candidate/{0}-{1}', inputs.candidate_tag, inputs.candidate_id) && needs.verify-release-assets.outputs.release_kind == 'draft' && needs.verify-release-assets.outputs.checkout_commit != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 .github/scripts/download_draft_release.py \
+            --repository "${GITHUB_REPOSITORY}" \
+            --tag "${RELEASE_TAG}" \
+            --candidate-id "${CANDIDATE_ID}" \
+            --release-id "${CANDIDATE_RELEASE_ID}" \
+            --target-branch "${CANDIDATE_BRANCH}" \
+            --expected-commit "${CHECKOUT_COMMIT}" \
+            --destination "${ASSET_ROOT}" \
+            --metadata-output "${RELEASE_METADATA}"
+
+      - name: 匿名下载 SwiftPM 使用的正式 Release 资产
+        if: needs.verify-release-assets.outputs.release_kind == 'formal' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
+        run: |
+          env \
+            -u GH_TOKEN \
+            -u GITHUB_TOKEN \
+            -u GITHUB_AUTH_TOKEN \
+            -u IFLY_PRIVATE_SOURCE_TOKEN \
+            python3 .github/scripts/download_release_anonymously.py \
+              --repository "${GITHUB_REPOSITORY}" \
+              --tag "${RELEASE_TAG}" \
+              --destination "${ASSET_ROOT}" \
+              --metadata-output "${RELEASE_METADATA}"
+
+      - name: 核对 SwiftPM 下载与公共前置资产完全一致
+        run: |
+          python3 .github/scripts/release_asset_identity.py \
+            --directory "${ASSET_ROOT}" \
+            --tag "${RELEASE_TAG}" \
+            --expected "${EXPECTED_ASSET_IDENTITY}"
+
+      - name: 从全新 SwiftPM 缓存消费产品并校验资源
+        run: |
+          test ! -e "${SPM_ROOT}"
+          test ! -e "${SPM_DERIVED_DATA}"
+          test ! -e "${SPM_CLONES}"
+          test ! -e "${SPM_PACKAGE_CACHE}"
+          test ! -e "${SPM_MODULE_CACHE}"
+          mkdir -p \
+            "${SPM_ROOT}/package/spm" \
+            "${SPM_ROOT}/extracted" \
+            "${SPM_CLONES}" \
+            "${SPM_PACKAGE_CACHE}" \
+            "${SPM_MODULE_CACHE}"
+          /usr/bin/ditto -x -k \
+            "${ASSET_ROOT}/YTIFLYADLib.xcframework.zip" \
+            "${SPM_ROOT}/extracted"
+          test -d "${SPM_ROOT}/extracted/YTIFLYADLib.xcframework"
+          cp .github/fixtures/swiftpm-local/Package.swift "${SPM_ROOT}/package/Package.swift"
+          cp -R "${SPM_ROOT}/extracted/YTIFLYADLib.xcframework" \
+            "${SPM_ROOT}/package/YTIFLYADLib.xcframework"
+          cp -R spm/YTIFLYADLibResources "${SPM_ROOT}/package/spm/YTIFLYADLibResources"
+
+          (
+            cd "${SPM_ROOT}/package"
+            xcodebuild build \
+              -scheme YTIFLYADLibReleaseValidation \
+              -configuration Debug \
+              -destination 'generic/platform=iOS Simulator' \
+              -derivedDataPath "${SPM_DERIVED_DATA}" \
+              -clonedSourcePackagesDirPath "${SPM_CLONES}" \
+              -packageCachePath "${SPM_PACKAGE_CACHE}" \
+              -disablePackageRepositoryCache \
+              -disableAutomaticPackageResolution \
+              CODE_SIGNING_ALLOWED=NO \
+              IPHONEOS_DEPLOYMENT_TARGET=11.0 \
+              CLANG_MODULE_CACHE_PATH="${SPM_MODULE_CACHE}" \
+              SWIFT_MODULE_CACHE_PATH="${SPM_MODULE_CACHE}" \
+              OTHER_LDFLAGS='$(inherited) -ObjC'
+          )
+
+          product_dir="${SPM_DERIVED_DATA}/Build/Products/Debug-iphonesimulator"
+          test -d \
+            "${product_dir}/YTIFLYADLibReleaseValidation_YTIFLYADLibResources.bundle/YTAdvSDK.bundle"
+          test -f \
+            "${product_dir}/YTIFLYADLibReleaseValidation_YTIFLYADLibResources.bundle/YTAdvSDK.bundle/PrivacyInfo.xcprivacy"
+
+          simulator_sdk="$(xcrun --sdk iphonesimulator --show-sdk-path)"
+          xcrun clang \
+            -ObjC \
+            -fobjc-arc \
+            -isysroot "${simulator_sdk}" \
+            -target arm64-apple-ios11.0-simulator \
+            -F "${product_dir}" \
+            -framework YTIFLYADLib \
+            -x objective-c - \
+            -o "${SPM_CONSUMER_BINARY}" <<'EOF'
+          #import <YTIFLYADLib/YTIFLYADLib.h>
+          int main(void) {
+            @autoreleasepool {
+              NSLog(@"linked %@", [YTIFLYAdBase class]);
+            }
+            return 0;
+          }
+          EOF
+
+      - name: 校验 SwiftPM 最终链接的 IDFA 系统框架依赖
+        run: |
+          python3 .github/scripts/verify_linked_idfa_frameworks.py \
+            --description 'SwiftPM 最小消费端' \
+            --binary "${SPM_CONSUMER_BINARY}"
+
+  release-summary:
+    name: 发布验证只读汇总
+    if: ${{ always() }}
+    needs:
+      - verify-repository
+      - verify-release-assets
+      - verify-cocoapods-consumer
+      - verify-swiftpm-consumer
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    env:
+      RELEASE_KIND: ${{ needs.verify-repository.outputs.release_kind }}
+      RELEASE_TAG: ${{ needs.verify-repository.outputs.release_tag || needs.verify-repository.outputs.repository_version }}
+      RELEASE_ID: ${{ inputs.candidate_release_id || github.event.release.id || '' }}
+      CANDIDATE_ID: ${{ inputs.candidate_id }}
+      CANDIDATE_BRANCH: ${{ needs.verify-repository.outputs.candidate_branch }}
+      CHECKOUT_COMMIT: ${{ needs.verify-release-assets.outputs.checkout_commit || needs.verify-repository.outputs.candidate_commit || github.sha }}
+      ASSET_IDENTITY: ${{ needs.verify-release-assets.outputs.asset_identity }}
+      REPOSITORY_RESULT: ${{ needs.verify-repository.result }}
+      ASSETS_RESULT: ${{ needs.verify-release-assets.result }}
+      COCOAPODS_RESULT: ${{ needs.verify-cocoapods-consumer.result }}
+      SWIFTPM_RESULT: ${{ needs.verify-swiftpm-consumer.result }}
+    steps:
+      - name: 写入身份、库存与 job 结论
+        shell: bash
+        run: |
+          set -euo pipefail
+          value_or_none() {
+            if [[ -n "$1" ]]; then
+              printf '%s' "$1"
+            else
+              printf '%s' '<无>'
+            fi
+          }
+          {
+            echo '## 发布验证汇总'
+            echo
+            echo '| 字段 | 值 |'
+            echo '| --- | --- |'
+            printf '| 模式 | `%s` |\n' "$(value_or_none "$RELEASE_KIND")"
+            printf '| Candidate ID | `%s` |\n' "$(value_or_none "$CANDIDATE_ID")"
+            printf '| Candidate 分支 | `%s` |\n' "$(value_or_none "$CANDIDATE_BRANCH")"
+            printf '| Release ID | `%s` |\n' "$(value_or_none "$RELEASE_ID")"
+            printf '| Release tag | `%s` |\n' "$(value_or_none "$RELEASE_TAG")"
+            printf '| Checkout commit | `%s` |\n' "$(value_or_none "$CHECKOUT_COMMIT")"
+            printf '| 四资产库存身份 | `%s` |\n' "$(value_or_none "$ASSET_IDENTITY")"
+            echo
+            echo '| Job | 结论 |'
+            echo '| --- | --- |'
+            printf '| verify-repository | `%s` |\n' "$REPOSITORY_RESULT"
+            printf '| verify-release-assets | `%s` |\n' "$ASSETS_RESULT"
+            printf '| verify-cocoapods-consumer | `%s` |\n' "$COCOAPODS_RESULT"
+            printf '| verify-swiftpm-consumer | `%s` |\n' "$SWIFTPM_RESULT"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          for result in \
+            "$REPOSITORY_RESULT" "$ASSETS_RESULT" \
+            "$COCOAPODS_RESULT" "$SWIFTPM_RESULT"; do
+            case "$result" in
+              failure|cancelled|timed_out|action_required) exit 1 ;;
+            esac
+          done
+          test "$REPOSITORY_RESULT" = 'success'
+          if [[ "$RELEASE_KIND" == 'draft' || "$RELEASE_KIND" == 'formal' ]]; then
+            test "$ASSETS_RESULT" = 'success'
+            test "$COCOAPODS_RESULT" = 'success'
+            test "$SWIFTPM_RESULT" = 'success'
+            [[ "$ASSET_IDENTITY" =~ ^[0-9a-f]{64}$ ]]
+          fi

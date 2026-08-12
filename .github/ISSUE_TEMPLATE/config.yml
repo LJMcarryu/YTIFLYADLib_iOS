@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞上报
+    url: https://github.com/LJMcarryu/YTIFLYADLib_iOS/blob/main/SECURITY.md
+    about: 安全漏洞请勿走公开 Issue，按 SECURITY.md 私密上报。
+  - name: 商务合作 / 广告位申请
+    url: https://www.iflytek.com
+    about: 商务与广告位相关请通过讯飞官方渠道联系。

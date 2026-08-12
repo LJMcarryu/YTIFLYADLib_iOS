@@ -1,0 +1,44 @@
+name: Bug 反馈
+description: 报告接入或使用中的问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。**请勿在此提交安全漏洞**（见 [SECURITY.md](../../SECURITY.md)，走私密渠道）。
+  - type: input
+    id: sdk-version
+    attributes:
+      label: SDK 版本
+      placeholder: 例如 6.2.3
+    validations:
+      required: true
+  - type: dropdown
+    id: integration
+    attributes:
+      label: 接入方式
+      options:
+        - CocoaPods
+        - Swift Package Manager
+        - CocoaPods :podspec 直连
+        - 手动集成
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      placeholder: iOS 版本 / Xcode 版本 / 设备或模拟器
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 复现步骤与期望/实际表现
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志 / 报错
+      render: text
