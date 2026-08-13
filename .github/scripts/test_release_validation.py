@@ -653,6 +653,78 @@ class WorkflowStructureTests(unittest.TestCase):
         )
         self.assertNotIn("if", asset_provenance)
 
+    def test_formal_documents_use_time_stable_candidate_semantics(self) -> None:
+        repository_steps = self.workflow["jobs"]["verify-repository"]["steps"]
+        validation = next(
+            step
+            for step in repository_steps
+            if step.get("name") == "校验版本、清单与 SwiftPM 资源"
+        )
+        script = validation["run"]
+        for marker in (
+            "`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B ",
+            "元数据已经冻结",
+            "公开可用性以同版本 GitHub Release 和发布后 CI 为准",
+            "本提交是 `{pod_version}` 的不可变发布目标",
+        ):
+            self.assertIn(marker, script)
+        for premature_marker in (
+            "`{pod_version}` 已正式发布",
+            "`{pod_version}` 已完成匿名",
+            "tag 和 GitHub Release 已公开",
+            "GitHub Release 已公开",
+            "published CI 已通过",
+            "发布后 CI 已通过",
+            "匿名下载已完成",
+            "已完成匿名下载",
+        ):
+            self.assertIn(premature_marker, script)
+            self.assertIn("premature_marker not in document", script)
+        self.assertNotIn('assert f"当前版本：`{pod_version}`" in readme', script)
+        self.assertNotIn(
+            'assert f"`{pod_version}` 正式分发资产" in release_state', script
+        )
+        pending_title = 'assert "## 6.2.3 准备状态" in releasing'
+        self.assertIn(pending_title, script)
+        self.assertGreater(script.index(pending_title), script.index("if checksum == pending_checksum:"))
+        self.assertLess(script.index(pending_title), script.index("else:"))
+
+    def test_formal_mode_keeps_post_publish_anonymous_and_tag_gates(self) -> None:
+        jobs = self.workflow["jobs"]
+        self.assertEqual(self.workflow["on"]["release"]["types"], ["published"])
+        repository_steps = jobs["verify-repository"]["steps"]
+        tag_gate = next(
+            step
+            for step in repository_steps
+            if step.get("name") == "Tag push 校验 annotated tag 与 checkout 绑定"
+        )["run"]
+        for marker in (
+            'git cat-file -t "refs/tags/${GITHUB_REF_NAME}"',
+            'git rev-parse "${GITHUB_REF_NAME}^{commit}"',
+            "git describe --tags --exact-match HEAD",
+        ):
+            self.assertIn(marker, tag_gate)
+
+        formal_downloads = [
+            step
+            for job in jobs.values()
+            for step in job["steps"]
+            if "正式 Release 资产" in step.get("name", "")
+            or step.get("name") == "匿名下载本次 Release 的精确资产集"
+        ]
+        self.assertEqual(len(formal_downloads), 3)
+        for step in formal_downloads:
+            self.assertIn("release_kind == 'formal'", step["if"])
+            self.assertNotIn("GITHUB_TOKEN", step.get("env", {}))
+            self.assertIn("download_release_anonymously.py", step["run"])
+            for token_name in (
+                "GH_TOKEN",
+                "GITHUB_TOKEN",
+                "GITHUB_AUTH_TOKEN",
+                "IFLY_PRIVATE_SOURCE_TOKEN",
+            ):
+                self.assertIn(f"-u {token_name}", step["run"])
+
     def test_no_cache_or_plaintext_artifact_transfer(self) -> None:
         text = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         self.assertNotIn("actions/cache", text)

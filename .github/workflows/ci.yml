@@ -216,7 +216,6 @@ jobs:
           assert pod_version == package_version == pod_url_version == demo_pod_version
           pending_changelog_heading = f"## {pod_version}（待发布）"
           final_changelog_heading = f"## {pod_version}"
-          assert "## 6.2.3 准备状态" in releasing
           release_state = releasing
           assert "AdSupport" in podspec_json.get("frameworks", []), (
               "podspec 缺少 AdSupport 强链接声明"
@@ -241,6 +240,7 @@ jobs:
           if checksum == pending_checksum:
               assert not is_tag_push, "tag push 不得携带 PENDING checksum"
               assert pod_version == "6.2.3"
+              assert "## 6.2.3 准备状态" in releasing
               assert f"当前清单目标版本：`{pod_version}`（待发布）" in readme
               assert "正式签名资产、checksum、tag 和 GitHub Release 尚未生成" in readme
               assert "`6.2.3` 尚未发布" in demo_readme
@@ -258,7 +258,38 @@ jobs:
               assert checksum != "a3c31e6fc523aa2bb1af71849ba1dc893d94e69ae68246eab4d9d20cbb07232f", (
                   "6.2.3 不得沿用 6.2.1 checksum"
               )
-              assert f"当前版本：`{pod_version}`" in readme
+              formal_state_marker = (
+                  "`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B "
+                  "元数据已经冻结"
+              )
+              public_availability_marker = (
+                  "公开可用性以同版本 GitHub Release 和发布后 CI 为准"
+              )
+              for label, document in (
+                  ("README.md", readme),
+                  ("CHANGELOG.md", changelog),
+                  ("RELEASING.md", releasing),
+              ):
+                  assert formal_state_marker in document, (
+                      f"{label} 缺少时间稳定的 FORMAL 冻结语义"
+                  )
+                  assert public_availability_marker in document, (
+                      f"{label} 缺少公开可用性边界"
+                  )
+                  for premature_marker in (
+                      f"`{pod_version}` 已正式发布",
+                      f"`{pod_version}` 已完成匿名",
+                      "tag 和 GitHub Release 已公开",
+                      "GitHub Release 已公开",
+                      "published CI 已通过",
+                      "发布后 CI 已通过",
+                      "匿名下载已完成",
+                      "已完成匿名下载",
+                  ):
+                      assert premature_marker not in document, (
+                          f"{label} 提前声明发布后事实: {premature_marker}"
+                      )
+              assert f"本提交是 `{pod_version}` 的不可变发布目标" in readme
               for stale_marker in (
                   "发布准备",
                   "准备态",
@@ -283,7 +314,6 @@ jobs:
                   "替换准备态事实",
               ):
                   assert stale_marker not in release_state, stale_marker
-              assert f"`{pod_version}` 正式分发资产" in release_state
               assert "delivery-manifest.json" in release_state
               assert re.search(
                   r"^" + re.escape(final_changelog_heading) + r"\s*$",
