@@ -8,11 +8,11 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 ## 6.2.3 准备状态
 
-- `releaseState`：`PENDING`
-- `binarySourceCommit`（SDK 二进制源码提交）：`__YTIFLYADLIB_6_2_3_BINARY_SOURCE_COMMIT_PENDING__`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`__YTIFLYADLIB_6_2_3_RELEASE_METADATA_COMMIT_PENDING__`
+- `releaseState`：`FORMAL`
+- `binarySourceCommit`（SDK 二进制源码提交）：`11bd2827041cd245329d12e959310f77d76b7ddd`
+- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`6b2b21020589d3b96534167e9cb94b5a9fb76fa1`
 
-当前进入公开仓发布准备态，仅固定版本、分发清单、Demo、控制面和资源。正式签名二进制、SwiftPM checksum、真实 A/B 提交、candidate Draft、annotated tag 和正式 Release 尚未生成，当前不得发布。
+正式签名二进制、SwiftPM checksum、真实 A/B 提交已完成本地冻结校验；candidate Draft、annotated tag 和正式 Release 仍须由编排器生成，当前不得发布。
 
 正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。Candidate 必须已经包含真实 checksum、`releaseState=FORMAL` 和两个不同的真实 A/B 提交；PENDING 准备态不允许触发 candidate 或正式复验。
 

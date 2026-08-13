@@ -5,9 +5,9 @@
 当前清单目标版本：`6.2.3`（待发布）。正式签名资产、checksum、tag 和 GitHub Release 尚未生成，不得将 `main` 的准备态清单当作可消费的正式发布。最低支持 iOS 11.0，正式产物将包含 arm64 真机与 arm64/x86_64 模拟器切片。
 
 <!-- 供发布 CI 机器校验的两提交 provenance；README、CHANGELOG、RELEASING 必须保持一致。 -->
-- `releaseState`：`PENDING`
-- `binarySourceCommit`（SDK 二进制源码提交）：`__YTIFLYADLIB_6_2_3_BINARY_SOURCE_COMMIT_PENDING__`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`__YTIFLYADLIB_6_2_3_RELEASE_METADATA_COMMIT_PENDING__`
+- `releaseState`：`FORMAL`
+- `binarySourceCommit`（SDK 二进制源码提交）：`11bd2827041cd245329d12e959310f77d76b7ddd`
+- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`6b2b21020589d3b96534167e9cb94b5a9fb76fa1`
 
 ## 白标契约
 
