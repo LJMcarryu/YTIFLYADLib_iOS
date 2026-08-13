@@ -6,15 +6,17 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 新版本正式发布只能从私有源码仓根目录的 `scripts/release-orchestrator.py` 发起，并按 `prepare → preflight → publish → verify → closeout` 顺序完成。本仓 `.github/scripts/**`、GitHub Actions `workflow_dispatch` 和各类打包命令只是底层门禁或故障诊断入口，不能替代编排器 receipt，也不得从本公开仓手工创建或移动 tag、发布 Release。
 
-## 6.2.3 准备状态
+## 6.2.3 状态
 
 - `releaseState`：`FORMAL`
 - `binarySourceCommit`（SDK 二进制源码提交）：`11bd2827041cd245329d12e959310f77d76b7ddd`
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`6b2b21020589d3b96534167e9cb94b5a9fb76fa1`
 
-正式签名二进制、SwiftPM checksum、真实 A/B 提交已完成本地冻结校验；candidate Draft、annotated tag 和正式 Release 仍须由编排器生成，当前不得发布。
+`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 
-正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。Candidate 必须已经包含真实 checksum、`releaseState=FORMAL` 和两个不同的真实 A/B 提交；PENDING 准备态不允许触发 candidate 或正式复验。
+正式签名二进制、SwiftPM checksum、真实 A/B 提交已完成本地冻结校验；公开可用性以同版本 GitHub Release 和发布后 CI 为准。
+
+正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。Candidate 必须已经包含真实 checksum、`releaseState=FORMAL` 和两个不同的真实 A/B 提交；未冻结的占位 checksum 不允许触发 candidate 或正式复验。
 
 ## 候选与正式资产契约
 

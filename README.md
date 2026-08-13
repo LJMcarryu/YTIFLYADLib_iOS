@@ -2,12 +2,14 @@
 
 `YTIFLYADLib` 是优推（YT）媒体定制的 iOS 广告 SDK，仅提供开屏和插屏广告，两种广告均支持图片与视频素材。Banner、激励视频和自渲染信息流不在本产物中，对应公开头、类符号和专属资源会从最终包物理裁剪。
 
-当前清单目标版本：`6.2.3`（待发布）。正式签名资产、checksum、tag 和 GitHub Release 尚未生成，不得将 `main` 的准备态清单当作可消费的正式发布。最低支持 iOS 11.0，正式产物将包含 arm64 真机与 arm64/x86_64 模拟器切片。
+当前候选版本：`6.2.3`。正式签名资产、checksum 和 A/B 元数据已经冻结；公开可用性以同版本 GitHub Release 和发布后 CI 为准。最低支持 iOS 11.0，正式产物将包含 arm64 真机与 arm64/x86_64 模拟器切片。
 
 <!-- 供发布 CI 机器校验的两提交 provenance；README、CHANGELOG、RELEASING 必须保持一致。 -->
 - `releaseState`：`FORMAL`
 - `binarySourceCommit`（SDK 二进制源码提交）：`11bd2827041cd245329d12e959310f77d76b7ddd`
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`6b2b21020589d3b96534167e9cb94b5a9fb76fa1`
+- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；公开可用性以同版本 GitHub Release 和发布后 CI 为准。
+- 本提交是 `6.2.3` 的不可变发布目标。
 
 ## 白标契约
 
