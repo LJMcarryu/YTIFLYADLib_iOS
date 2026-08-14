@@ -20,7 +20,7 @@ let package = Package(
         .binaryTarget(
             name: "YTIFLYADLib",
             url: "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/download/6.2.3/YTIFLYADLib.xcframework.zip",
-            checksum: "64892a95762bd19c77e6366422dbe81a4ff2c74b3a55f6e9c26c32afb0a135dc"
+            checksum: "2c92521412dfc223a0bc4148e342ea2e2e8e32828eda6759266f079b92847e66"
         ),
         .target(
             name: "YTIFLYADLibResources",
