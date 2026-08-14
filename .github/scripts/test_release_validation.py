@@ -851,6 +851,50 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertGreater(script.index(pending_title), script.index("if checksum == pending_checksum:"))
         self.assertLess(script.index(pending_title), script.index("else:"))
 
+    def test_real_repository_documents_follow_embedded_validation_for_state(self) -> None:
+        repository_steps = self.workflow["jobs"]["verify-repository"]["steps"]
+        validation = next(
+            step
+            for step in repository_steps
+            if step.get("name") == "校验版本、清单与 SwiftPM 资源"
+        )
+        match = re.search(
+            r"(?ms)^python3 - <<'PY'\n(?P<script>.*?)^PY\s*$",
+            validation["run"],
+        )
+        self.assertIsNotNone(match, "未提取到 workflow 的内嵌 FORMAL Python 门禁")
+
+        package = (ROOT / "Package.swift").read_text(encoding="utf-8")
+        pending_checksum = "__YTIFLYADLIB_6_2_3_SWIFTPM_CHECKSUM_PENDING__"
+        if pending_checksum in package:
+            self.skipTest("仓库仍为 PENDING；FORMAL 内嵌门禁留待候选态执行")
+
+        with tempfile.TemporaryDirectory() as directory:
+            podspec = subprocess.run(
+                ["pod", "ipc", "spec", str(ROOT / "YTIFLYADLib.podspec")],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(0, podspec.returncode, podspec.stdout + podspec.stderr)
+            podspec_json = Path(directory) / "yt-podspec.json"
+            podspec_json.write_text(podspec.stdout, encoding="utf-8")
+
+            script = match.group("script").replace(
+                json.dumps("/tmp/yt-podspec.json"),
+                json.dumps(str(podspec_json)),
+            )
+            environment = os.environ.copy()
+            environment.update({"GITHUB_REF_TYPE": "branch", "GITHUB_REF_NAME": "main"})
+            result = subprocess.run(
+                ["python3", "-c", script],
+                cwd=ROOT,
+                env=environment,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
     def test_formal_mode_keeps_post_publish_anonymous_and_tag_gates(self) -> None:
         jobs = self.workflow["jobs"]
         self.assertEqual(self.workflow["on"]["release"]["types"], ["published"])
