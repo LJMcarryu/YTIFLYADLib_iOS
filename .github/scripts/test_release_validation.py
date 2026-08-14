@@ -521,8 +521,16 @@ class WorkflowStructureTests(unittest.TestCase):
                 if "GITHUB_TOKEN" in step.get("env", {}):
                     token_steps.append((job_id, step))
         self.assertEqual(len(token_steps), 3)
+        self.assertNotIn(
+            "${{ github.token }}",
+            (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"),
+        )
         for _, step in token_steps:
             self.assertIn("draft", step["name"])
+            self.assertEqual(
+                step["env"]["GITHUB_TOKEN"],
+                "${{ secrets.DRAFT_RELEASE_READ_TOKEN }}",
+            )
             condition = step.get("if", "")
             for required in (
                 "github.event_name == 'workflow_dispatch'",
