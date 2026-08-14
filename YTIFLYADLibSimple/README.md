@@ -2,7 +2,7 @@
 
 本工程仅演示 `YTIFLYADLib 6.2.3` 准备版的开屏和插屏广告接入，两种格式均可展示图片或视频素材。Demo 不包含 Banner、激励视频或自渲染信息流入口。
 
-当前 Demo 对应 `6.2.3` 候选冻结版本，`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；公开可用性以同版本 GitHub Release 和发布后 CI 为准。候选/正式 CI 会将精确的合并 zip 解压为本地 Pod，实际构建该 Demo。
+`6.2.3` 尚未发布，当前 `Podfile` 仅固定待发布 tag 契约；在对应 tag 与 Release 资产真实存在前，`pod install` 远程消费预期失败。候选/正式 CI 会将精确的合并 zip 解压为本地 Pod，实际构建该 Demo。
 
 ## 使用方式
 
