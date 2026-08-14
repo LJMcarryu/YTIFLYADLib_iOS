@@ -176,6 +176,19 @@ def validate_draft_release_metadata(
     )
     require(binary_commit != metadata_commit, "Draft Release body 的最终 FORMAL A/B 必须不同")
 
+    html_url = release.get("html_url")
+    require(isinstance(html_url, str), "Draft Release html_url 缺失")
+    html_url_match = re.fullmatch(
+        rf"https://github\.com/{re.escape(repository)}/releases/tag/"
+        r"(untagged-[0-9a-f]+)",
+        html_url,
+    )
+    require(
+        html_url_match is not None,
+        f"Draft Release html_url 非同仓 HTTPS untagged 地址: {html_url!r}",
+    )
+    draft_selector = html_url_match.group(1)
+
     by_name = validate_asset_inventory(release, tag)
     for asset in by_name.values():
         name = asset["name"]
@@ -190,7 +203,7 @@ def validate_draft_release_metadata(
         )
         expected_browser_url = (
             f"https://github.com/{repository}/releases/download/"
-            f"{quote(tag, safe='')}/{quote(name, safe='')}"
+            f"{quote(draft_selector, safe='')}/{quote(name, safe='')}"
         )
         require(
             asset.get("browser_download_url") == expected_browser_url,
@@ -208,6 +221,7 @@ def stable_release_snapshot(release: Dict[str, Any]) -> Dict[str, Any]:
         "draft": release.get("draft"),
         "prerelease": release.get("prerelease"),
         "target_commitish": release.get("target_commitish"),
+        "html_url": release.get("html_url"),
         "body": release.get("body"),
         "assets": sorted(
             (
@@ -216,6 +230,7 @@ def stable_release_snapshot(release: Dict[str, Any]) -> Dict[str, Any]:
                 asset.get("size"),
                 asset.get("digest"),
                 asset.get("url"),
+                asset.get("browser_download_url"),
                 asset.get("state"),
             )
             for asset in assets

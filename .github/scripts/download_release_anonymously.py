@@ -102,6 +102,13 @@ def validate_release_metadata(
     require(release.get("prerelease") is False, "Release 不得为 prerelease")
     require(bool(release.get("published_at")), "Release 缺少 published_at")
     require(isinstance(release.get("body"), str), "Release body 缺失")
+    expected_html_url = (
+        f"https://github.com/{repository}/releases/tag/{quote(tag, safe='')}"
+    )
+    require(
+        release.get("html_url") == expected_html_url,
+        f"Release html_url 非预期: {release.get('html_url')!r}",
+    )
 
     by_name = validate_asset_inventory(release, tag)
     for asset in by_name.values():
