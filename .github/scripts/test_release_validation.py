@@ -29,11 +29,12 @@ EXPECTED_COMMIT = "b" * 40
 BINARY_COMMIT = "1" * 40
 METADATA_COMMIT = "2" * 40
 CANDIDATE_BRANCH = f"release-candidate/{TAG}-{CANDIDATE_ID}"
+DRAFT_SELECTOR = "untagged-" + "e" * 16
 
 
-def release_assets(tag: str = TAG) -> list[dict[str, object]]:
+def release_assets(selector: str = DRAFT_SELECTOR) -> list[dict[str, object]]:
     result = []
-    for asset_id, name in enumerate(sorted(anonymous.expected_asset_names(tag)), 101):
+    for asset_id, name in enumerate(sorted(anonymous.expected_asset_names(TAG)), 101):
         result.append(
             {
                 "id": asset_id,
@@ -46,7 +47,8 @@ def release_assets(tag: str = TAG) -> list[dict[str, object]]:
                     f"releases/assets/{asset_id}"
                 ),
                 "browser_download_url": (
-                    f"https://github.com/{REPOSITORY}/releases/download/{tag}/{name}"
+                    f"https://github.com/{REPOSITORY}/releases/download/"
+                    f"{selector}/{name}"
                 ),
             }
         )
@@ -61,6 +63,9 @@ def draft_release() -> dict[str, object]:
         "prerelease": False,
         "published_at": None,
         "target_commitish": CANDIDATE_BRANCH,
+        "html_url": (
+            f"https://github.com/{REPOSITORY}/releases/tag/{DRAFT_SELECTOR}"
+        ),
         "body": (
             f"# {TAG}\n\n"
             f"- `binarySourceCommit`（SDK 二进制源码提交）：`{BINARY_COMMIT}`\n"
@@ -80,6 +85,8 @@ def formal_release() -> dict[str, object]:
             "draft": False,
             "published_at": "2026-08-11T00:00:00Z",
             "body": "正式发布说明",
+            "html_url": f"https://github.com/{REPOSITORY}/releases/tag/{TAG}",
+            "assets": release_assets(TAG),
         }
     )
     return value
@@ -168,6 +175,44 @@ class ReleaseMetadataTests(unittest.TestCase):
         with self.assertRaises(anonymous.VerificationError):
             anonymous.validate_release_metadata(draft_release(), REPOSITORY, TAG)
 
+    def test_anonymous_metadata_rejects_noncanonical_formal_html_url(self) -> None:
+        mutations = (
+            (
+                "untagged selector",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace(TAG, DRAFT_SELECTOR)}
+                ),
+            ),
+            (
+                "wrong host",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace("github.com", "example.com")}
+                ),
+            ),
+            (
+                "wrong repository",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace(REPOSITORY, "attacker/repo")}
+                ),
+            ),
+            (
+                "non-https scheme",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace("https://", "http://", 1)}
+                ),
+            ),
+            (
+                "query suffix",
+                lambda value: value.update({"html_url": value["html_url"] + "?x=1"}),
+            ),
+        )
+        for label, mutate in mutations:
+            with self.subTest(label=label):
+                release = formal_release()
+                mutate(release)
+                with self.assertRaises(anonymous.VerificationError):
+                    anonymous.validate_release_metadata(release, REPOSITORY, TAG)
+
     def test_shared_inventory_rejects_extra_duplicate_and_bad_digest(self) -> None:
         for mutate in (
             lambda value: value["assets"].append(copy.deepcopy(value["assets"][0])),
@@ -182,7 +227,7 @@ class ReleaseMetadataTests(unittest.TestCase):
             with self.assertRaises(anonymous.VerificationError):
                 anonymous.validate_asset_inventory(release, TAG)
 
-    def test_draft_metadata_binds_candidate_target_and_exact_assets(self) -> None:
+    def test_draft_metadata_accepts_valid_untagged_urls_and_binds_candidate(self) -> None:
         assets = draft.validate_draft_release_metadata(
             draft_release(),
             REPOSITORY,
@@ -246,6 +291,100 @@ class ReleaseMetadataTests(unittest.TestCase):
                         EXPECTED_COMMIT,
                     )
 
+    def test_draft_untagged_urls_reject_wrong_boundaries(self) -> None:
+        mutations = (
+            (
+                "html host",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace("github.com", "example.com")}
+                ),
+            ),
+            (
+                "html repository",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace(REPOSITORY, "attacker/repo")}
+                ),
+            ),
+            (
+                "html scheme",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace("https://", "http://", 1)}
+                ),
+            ),
+            (
+                "html selector",
+                lambda value: value.update(
+                    {"html_url": value["html_url"].replace(DRAFT_SELECTOR, TAG)}
+                ),
+            ),
+            (
+                "browser host",
+                lambda value: value["assets"][0].update(
+                    {
+                        "browser_download_url": value["assets"][0][
+                            "browser_download_url"
+                        ].replace("github.com", "example.com")
+                    }
+                ),
+            ),
+            (
+                "browser repository",
+                lambda value: value["assets"][0].update(
+                    {
+                        "browser_download_url": value["assets"][0][
+                            "browser_download_url"
+                        ].replace(REPOSITORY, "attacker/repo")
+                    }
+                ),
+            ),
+            (
+                "browser scheme",
+                lambda value: value["assets"][0].update(
+                    {
+                        "browser_download_url": value["assets"][0][
+                            "browser_download_url"
+                        ].replace("https://", "http://", 1)
+                    }
+                ),
+            ),
+            (
+                "browser selector",
+                lambda value: value["assets"][0].update(
+                    {
+                        "browser_download_url": value["assets"][0][
+                            "browser_download_url"
+                        ].replace(DRAFT_SELECTOR, "untagged-" + "f" * 16)
+                    }
+                ),
+            ),
+            (
+                "browser filename",
+                lambda value: value["assets"][0].update(
+                    {
+                        "browser_download_url": value["assets"][0][
+                            "browser_download_url"
+                        ].rsplit("/", 1)[0]
+                        + "/unexpected.zip"
+                    }
+                ),
+            ),
+        )
+        for label, mutate in mutations:
+            with self.subTest(label=label):
+                release = draft_release()
+                mutate(release)
+                with self.assertRaises(anonymous.VerificationError):
+                    draft.validate_draft_release_metadata(
+                        release,
+                        REPOSITORY,
+                        TAG,
+                        CANDIDATE_ID,
+                        RELEASE_ID,
+                        CANDIDATE_BRANCH,
+                        EXPECTED_COMMIT,
+                        EXPECTED_COMMIT,
+                    )
+
     def test_draft_candidate_line_must_be_unique(self) -> None:
         release = draft_release()
         release["body"] += f"- `candidateId`：`{CANDIDATE_ID}`\n"
@@ -272,6 +411,21 @@ class ReleaseMetadataTests(unittest.TestCase):
         self.assertNotEqual(
             draft.stable_release_snapshot(before), draft.stable_release_snapshot(after)
         )
+
+        after = copy.deepcopy(before)
+        after["html_url"] = after["html_url"].replace(DRAFT_SELECTOR, "untagged-f")
+        self.assertNotEqual(
+            draft.stable_release_snapshot(before), draft.stable_release_snapshot(after)
+        )
+
+        for index in range(len(before["assets"])):
+            with self.subTest(browser_url_asset=index):
+                after = copy.deepcopy(before)
+                after["assets"][index]["browser_download_url"] += "?drift=1"
+                self.assertNotEqual(
+                    draft.stable_release_snapshot(before),
+                    draft.stable_release_snapshot(after),
+                )
 
 
 class RequestBoundaryTests(unittest.TestCase):
