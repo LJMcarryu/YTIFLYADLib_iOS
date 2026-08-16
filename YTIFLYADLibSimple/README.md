@@ -1,8 +1,8 @@
 # YTIFLYADLibSimple
 
-本工程仅演示 `YTIFLYADLib 6.2.3` 候选冻结版本的开屏和插屏广告接入，两种格式均可展示图片或视频素材。Demo 不包含 Banner、激励视频或自渲染信息流入口。
+本工程仅演示正式版 `YTIFLYADLib 6.2.3` 的开屏和插屏广告接入，两种格式均可展示图片或视频素材。Demo 不包含 Banner、激励视频或自渲染信息流入口。
 
-`Podfile` 已固定到 `6.2.3` tag；candidate Draft、正式 tag、Release 与公开消费仍待编排器执行。候选/正式 CI 会将精确的合并 zip 解压为本地 Pod，实际构建该 Demo。
+`Podfile` 已固定到 `6.2.3` tag；正式 Release 与公开消费验证均已完成。候选/正式 CI 会将精确的合并 zip 解压为本地 Pod，实际构建该 Demo。
 
 ## 使用方式
 

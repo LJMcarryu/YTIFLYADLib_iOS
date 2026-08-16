@@ -184,6 +184,8 @@ jobs:
           printf 'tag=%s\n' "${tag}" >> "${GITHUB_OUTPUT}"
 
       - name: 校验版本、清单与 SwiftPM 资源
+        env:
+          RELEASE_VALIDATION_KIND: ${{ steps.release-selection.outputs.kind }}
         run: |
           swift package dump-package > /dev/null
           pod ipc spec YTIFLYADLib.podspec > /tmp/yt-podspec.json
@@ -232,7 +234,14 @@ jobs:
 
           checksum = re.search(r'checksum:\s*"([^"]+)"', package).group(1)
           pending_checksum = "__YTIFLYADLIB_6_2_3_SWIFTPM_CHECKSUM_PENDING__"
+          release_validation_kind = os.environ.get("RELEASE_VALIDATION_KIND", "none")
+          assert release_validation_kind in {"none", "draft", "formal"}, (
+              f"未知 Release 验证类型: {release_validation_kind}"
+          )
           is_tag_push = os.environ.get("GITHUB_REF_TYPE") == "tag"
+          frozen_document_context = (
+              is_tag_push or release_validation_kind in {"draft", "formal"}
+          )
           if is_tag_push:
               assert os.environ.get("GITHUB_REF_NAME") == pod_version, (
                   os.environ.get("GITHUB_REF_NAME"), pod_version
@@ -276,19 +285,54 @@ jobs:
                   assert public_availability_marker in document, (
                       f"{label} 缺少公开可用性边界"
                   )
-                  for premature_marker in (
-                      f"`{pod_version}` 已正式发布",
-                      f"`{pod_version}` 已完成匿名",
-                      "tag 和 GitHub Release 已公开",
-                      "GitHub Release 已公开",
-                      "published CI 已通过",
-                      "发布后 CI 已通过",
-                      "匿名下载已完成",
-                      "已完成匿名下载",
-                  ):
-                      assert premature_marker not in document, (
-                          f"{label} 提前声明发布后事实: {premature_marker}"
+                  if frozen_document_context:
+                      volatile_publication_claims = (
+                          rf"(?:当前最新公开正式版|`?{re.escape(pod_version)}`?)"
+                          r".{0,100}(?:已于.{0,20})?(?:正式)?(?:公开|发布)",
+                          r"(?:tag|Release).{0,60}(?:已|已经)(?:创建|公开|发布)",
+                          r"(?:已|已经).{0,60}(?:tag|Release).{0,30}(?:创建|公开|发布)",
+                          r"(?:匿名下载|匿名消费|匿名验证|匿名终验).{0,60}"
+                          r"(?:已完成|完成|通过|成功|`success`)",
+                          r"(?:已|已经)(?:完成|通过|成功)?.{0,60}"
+                          r"(?:匿名下载|匿名消费|匿名验证|匿名终验)",
+                          r"(?:Actions|Run\s+[0-9]+|published CI|发布后 CI).{0,60}"
+                          r"(?:已完成|完成|通过|成功|`success`)",
                       )
+                      for volatile_publication_claim in volatile_publication_claims:
+                          assert not re.search(
+                              volatile_publication_claim,
+                              document,
+                              re.I | re.S,
+                          ), (
+                              f"{label} 冻结提交提前声明发布后事实: "
+                              f"{volatile_publication_claim}"
+                          )
+              if not frozen_document_context:
+                  release_url = (
+                      "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/"
+                      f"{pod_version}"
+                  )
+                  actions_url_pattern = re.compile(
+                      r"https://github\.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/"
+                      r"([1-9][0-9]*)"
+                  )
+                  published_run_ids = {}
+                  for label, document in (
+                      ("README.md", readme),
+                      ("CHANGELOG.md", changelog),
+                      ("RELEASING.md", releasing),
+                  ):
+                      assert release_url in document, (
+                          f"{label} 缺少精确 {pod_version} GitHub Release 证据"
+                      )
+                      run_ids = set(actions_url_pattern.findall(document))
+                      assert len(run_ids) == 1, (
+                          f"{label} 必须且只能声明一个当前版本 Actions Run: {run_ids}"
+                      )
+                      published_run_ids[label] = next(iter(run_ids))
+                  assert len(set(published_run_ids.values())) == 1, (
+                      f"当前版本文档 Actions Run 不一致: {published_run_ids}"
+                  )
               assert f"本提交是 `{pod_version}` 的不可变发布目标" in readme
               for stale_marker in (
                   "发布准备",

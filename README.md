@@ -2,7 +2,7 @@
 
 `YTIFLYADLib` 是优推（YT）媒体定制的 iOS 广告 SDK，仅提供开屏和插屏广告，两种广告均支持图片与视频素材。Banner、激励视频和自渲染信息流不在本产物中，对应公开头、类符号和专属资源会从最终包物理裁剪。
 
-当前候选版本：`6.2.3`。正式签名资产、checksum 和 A/B 元数据已冻结并完成本地校验；`YTIFLYADLib-6.2.3.zip` 的冻结 SHA-256 为 `64e168120aac5f412ab96bdef78fff14e7ba75aae234a08d737fa5ad21c3e537`。tag、Release 与匿名消费验证仍待编排器执行。最低支持 iOS 11.0，正式产物包含 arm64 真机与 arm64/x86_64 模拟器切片。
+当前最新公开正式版为 [`6.2.3`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.3)，已于 2026-08-16 发布。正式签名资产、checksum 和 A/B 元数据已冻结；`YTIFLYADLib-6.2.3.zip` 的 SHA-256 为 `64e168120aac5f412ab96bdef78fff14e7ba75aae234a08d737fa5ad21c3e537`。annotated tag 解引用到 `09148ce3c651b3dfc35cae3c873baab6d8105950`，4 个资产已通过无 Token 匿名验证，正式消费 [Run 31941599341](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/31941599341) 为 `success`。最低支持 iOS 11.0，正式产物包含 arm64 真机与 arm64/x86_64 模拟器切片。
 
 <!-- 供发布 CI 机器校验的两提交 provenance；README、CHANGELOG、RELEASING 必须保持一致。 -->
 - `releaseState`：`FORMAL`
@@ -12,7 +12,7 @@
 - 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 - 本提交是 `6.2.3` 的不可变发布目标。
 
-本候选未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
+本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
 
 ## 白标契约
 
@@ -29,7 +29,7 @@
 
 ## 分发产物
 
-正式 `6.2.3` Release 必须且只能包含四个资产：
+正式 `6.2.3` Release 精确包含四个资产：
 
 | 文件 | 内容 | 适用方式 |
 | --- | --- | --- |
@@ -42,7 +42,7 @@
 
 ## CocoaPods
 
-待 `6.2.3` 正式发布后：
+使用已发布的 `6.2.3` tag：
 
 ```ruby
 source 'https://cdn.cocoapods.org/'
@@ -57,7 +57,7 @@ end
 
 ## Swift Package Manager
 
-待 `6.2.3` 正式发布后，添加：
+添加公开仓并选择正式版本 `6.2.3`：
 
 ```text
 https://github.com/LJMcarryu/YTIFLYADLib_iOS.git

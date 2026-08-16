@@ -815,7 +815,7 @@ class WorkflowStructureTests(unittest.TestCase):
         )
         self.assertNotIn("if", asset_provenance)
 
-    def test_formal_documents_use_time_stable_candidate_semantics(self) -> None:
+    def test_formal_documents_distinguish_frozen_and_published_semantics(self) -> None:
         repository_steps = self.workflow["jobs"]["verify-repository"]["steps"]
         validation = next(
             step
@@ -823,6 +823,10 @@ class WorkflowStructureTests(unittest.TestCase):
             if step.get("name") == "校验版本、清单与 SwiftPM 资源"
         )
         script = validation["run"]
+        self.assertEqual(
+            validation["env"]["RELEASE_VALIDATION_KIND"],
+            "${{ steps.release-selection.outputs.kind }}",
+        )
         for marker in (
             "`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B ",
             "元数据已经冻结",
@@ -830,18 +834,23 @@ class WorkflowStructureTests(unittest.TestCase):
             "本提交是 `{pod_version}` 的不可变发布目标",
         ):
             self.assertIn(marker, script)
-        for premature_marker in (
-            "`{pod_version}` 已正式发布",
-            "`{pod_version}` 已完成匿名",
-            "tag 和 GitHub Release 已公开",
-            "GitHub Release 已公开",
-            "published CI 已通过",
-            "发布后 CI 已通过",
-            "匿名下载已完成",
-            "已完成匿名下载",
+        for frozen_claim_marker in (
+            "volatile_publication_claims",
+            "(?:当前最新公开正式版|`?{re.escape(pod_version)}`?)",
+            "(?:匿名下载|匿名消费|匿名验证|匿名终验)",
+            "(?:Actions|Run\\s+[0-9]+|published CI|发布后 CI)",
+            "for volatile_publication_claim in volatile_publication_claims",
+            "not re.search(",
         ):
-            self.assertIn(premature_marker, script)
-            self.assertIn("premature_marker not in document", script)
+            self.assertIn(frozen_claim_marker, script)
+        self.assertIn("if frozen_document_context:", script)
+        self.assertIn("if not frozen_document_context:", script)
+        for published_evidence in (
+            "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/",
+            "https://github\\.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/",
+            "当前版本文档 Actions Run 不一致",
+        ):
+            self.assertIn(published_evidence, script)
         self.assertNotIn('assert f"当前版本：`{pod_version}`" in readme', script)
         self.assertNotIn(
             'assert f"`{pod_version}` 正式分发资产" in release_state', script
@@ -885,7 +894,13 @@ class WorkflowStructureTests(unittest.TestCase):
                 json.dumps(str(podspec_json)),
             )
             environment = os.environ.copy()
-            environment.update({"GITHUB_REF_TYPE": "branch", "GITHUB_REF_NAME": "main"})
+            environment.update(
+                {
+                    "GITHUB_REF_TYPE": "branch",
+                    "GITHUB_REF_NAME": "main",
+                    "RELEASE_VALIDATION_KIND": "none",
+                }
+            )
             result = subprocess.run(
                 ["python3", "-c", script],
                 cwd=ROOT,
@@ -894,6 +909,40 @@ class WorkflowStructureTests(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+            for label, frozen_environment in (
+                (
+                    "draft candidate",
+                    {
+                        "GITHUB_REF_TYPE": "branch",
+                        "GITHUB_REF_NAME": "release-candidate/6.2.3-test",
+                        "RELEASE_VALIDATION_KIND": "draft",
+                    },
+                ),
+                (
+                    "annotated tag",
+                    {
+                        "GITHUB_REF_TYPE": "tag",
+                        "GITHUB_REF_NAME": "6.2.3",
+                        "RELEASE_VALIDATION_KIND": "none",
+                    },
+                ),
+            ):
+                with self.subTest(context=label):
+                    environment = os.environ.copy()
+                    environment.update(frozen_environment)
+                    frozen_result = subprocess.run(
+                        ["python3", "-c", script],
+                        cwd=ROOT,
+                        env=environment,
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertNotEqual(0, frozen_result.returncode)
+                    self.assertIn(
+                        "冻结提交提前声明发布后事实",
+                        frozen_result.stdout + frozen_result.stderr,
+                    )
 
     def test_formal_mode_keeps_post_publish_anonymous_and_tag_gates(self) -> None:
         jobs = self.workflow["jobs"]
