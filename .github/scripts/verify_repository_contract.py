@@ -50,12 +50,11 @@ def validate_state_version(value: dict[str, object], release_kind: str) -> None:
             "candidate/tag/Release 必须使用当前分发版本的 FROZEN 状态",
         )
         return
-    if version == VERSION:
-        return
+    require(release_kind == "none", "非法验证类型")
     require(
-        version == PREVIOUS_RELEASE_VERSION and phase == "CLOSED",
-        "release-state 版本不匹配：普通 main 只允许保留上一版 CLOSED，"
-        "candidate/tag/Release 必须与当前分发版本一致",
+        version in {PREVIOUS_RELEASE_VERSION, VERSION} and phase == "CLOSED",
+        "release-state 版本不匹配：普通 main 只允许保留上一版或当前版 CLOSED，"
+        "candidate/tag/Release 必须使用当前版本 FROZEN",
     )
 
 
