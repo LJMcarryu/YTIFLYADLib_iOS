@@ -1,0 +1,177 @@
+#!/usr/bin/env python3
+"""分别校验优土渠道机器分发契约与非阻断 Markdown 展示契约。"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import plistlib
+import re
+import shlex
+import sys
+from pathlib import Path
+
+
+VERSION = "6.2.3"
+REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
+PENDING = "__YTIFLYADLIB_6_2_3_SWIFTPM_CHECKSUM_PENDING__"
+HISTORICAL = {
+    "a3c31e6fc523aa2bb1af71849ba1dc893d94e69ae68246eab4d9d20cbb07232f",
+}
+
+
+class ContractError(RuntimeError):
+    pass
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise ContractError(message)
+
+
+def read(root: Path, relative: str) -> str:
+    return (root / relative).read_text(encoding="utf-8")
+
+
+def state(root: Path) -> dict[str, object]:
+    value = json.loads(read(root, "release-state.json"))
+    require(value.get("version") == VERSION, "release-state 版本不匹配")
+    require(value.get("channel") == "yt", "release-state 渠道不匹配")
+    return value
+
+
+def one(pattern: str, text: str, label: str) -> str:
+    values = re.findall(pattern, text, re.M)
+    require(len(values) == 1, f"{label} 声明数量错误: {values}")
+    return values[0]
+
+
+def verify_machine(
+    root: Path, release_kind: str, podspec_json_path: Path
+) -> None:
+    require(release_kind in {"none", "draft", "formal"}, "非法验证类型")
+    machine = state(root)
+    package = read(root, "Package.swift")
+    podspec = read(root, "YTIFLYADLib.podspec")
+    podfile = read(root, "YTIFLYADLibSimple/Podfile")
+    podspec_json = json.loads(podspec_json_path.read_text(encoding="utf-8"))
+    version = one(r"s\.version\s*=\s*['\"]([^'\"]+)", podspec, "podspec version")
+    require(version == VERSION, f"podspec 版本错误: {version}")
+    package_url = one(r'url:\s*"([^"]*YTIFLYADLib\.xcframework\.zip)"',
+                      package, "SwiftPM URL")
+    pod_url = one(r"s\.source\s*=\s*\{\s*:http\s*=>\s*['\"]([^'\"]+)",
+                  podspec, "podspec URL")
+    require(
+        package_url == f"https://github.com/{REPOSITORY}/releases/download/"
+        f"{VERSION}/YTIFLYADLib.xcframework.zip",
+        "SwiftPM URL 版本或仓库错误",
+    )
+    require(
+        pod_url == f"https://github.com/{REPOSITORY}/releases/download/"
+        f"{VERSION}/YTIFLYADLib-{VERSION}.zip",
+        "podspec URL 版本或仓库错误",
+    )
+    demo_url = one(r":podspec\s*=>\s*'([^']+)'", podfile, "Demo podspec URL")
+    require(
+        demo_url == f"https://raw.githubusercontent.com/{REPOSITORY}/"
+        f"{VERSION}/YTIFLYADLib.podspec",
+        "Demo podspec URL 版本错误",
+    )
+    checksum = one(r'checksum:\s*"([^"]+)"', package, "SwiftPM checksum")
+    preparing = machine.get("phase") == "PREPARING"
+    if preparing:
+        require(checksum == PENDING, "PREPARING 必须使用精确 PENDING checksum")
+    else:
+        require(re.fullmatch(r"[0-9a-f]{64}", checksum) is not None,
+                "FORMAL checksum 非 64 位小写 SHA-256")
+        require(checksum != "0" * 64 and checksum not in HISTORICAL,
+                "FORMAL checksum 为零或沿用历史值")
+    if release_kind in {"draft", "formal"}:
+        require(not preparing, f"{release_kind} 禁止 PREPARING")
+    for marker in (
+        'name: "YTIFLYADLib"',
+        'targets: ["YTIFLYADLib", "YTIFLYADLibResources"]',
+        '.copy("YTAdvSDK.bundle")',
+    ):
+        require(marker in package, f"Package.swift 缺少包契约: {marker}")
+    frameworks = podspec_json.get("frameworks", [])
+    weak_frameworks = podspec_json.get("weak_frameworks", [])
+    if isinstance(frameworks, str):
+        frameworks = [frameworks]
+    if isinstance(weak_frameworks, str):
+        weak_frameworks = [weak_frameworks]
+    require("AdSupport" in frameworks, "podspec JSON 缺少 AdSupport 强链接声明")
+    require(
+        "AppTrackingTransparency" in weak_frameworks,
+        "podspec JSON 缺少 AppTrackingTransparency 弱链接声明",
+    )
+    for key in ("pod_target_xcconfig", "user_target_xcconfig"):
+        config = podspec_json.get(key, {})
+        require(isinstance(config, dict), f"podspec JSON {key} 非对象")
+        flags = config.get("OTHER_LDFLAGS", "")
+        require(
+            isinstance(flags, str) and "-ObjC" in shlex.split(flags),
+            f"podspec JSON {key}.OTHER_LDFLAGS 缺少 -ObjC",
+        )
+    require((root / "spm/YTIFLYADLibResources/YTIFLYADLibResources.swift").is_file(),
+            "缺少 SwiftPM 资源锚点")
+    bundle = root / "spm/YTIFLYADLibResources/YTAdvSDK.bundle"
+    privacy = bundle / "PrivacyInfo.xcprivacy"
+    require(privacy.is_file(), "缺少 SwiftPM PrivacyInfo.xcprivacy")
+    executable = [
+        path for path in bundle.rglob("*")
+        if path.is_file() and path.stat().st_mode & 0o111
+    ]
+    require(not executable, f"资源包含可执行位文件: {executable}")
+    domains = plistlib.loads(privacy.read_bytes())["NSPrivacyTrackingDomains"]
+    require("msdk.voiceads.cn" in domains, "隐私清单缺少 msdk.voiceads.cn")
+    require("youku-sdk-grey.voiceads.cn" not in domains, "隐私清单残留灰度域名")
+
+
+def verify_docs(root: Path, _release_kind: str) -> None:
+    machine = state(root)
+    documents = {
+        name: read(root, name)
+        for name in ("README.md", "CHANGELOG.md", "RELEASING.md")
+    }
+    demo = read(root, "YTIFLYADLibSimple/README.md")
+    if machine.get("phase") == "PREPARING":
+        require("待发布" in documents["CHANGELOG.md"], "CHANGELOG 缺少待发布展示")
+        require("PENDING" in documents["RELEASING.md"], "RELEASING 缺少 PENDING 展示")
+        require("尚未发布" in demo, "Demo 缺少待发布展示")
+    else:
+        frozen = "`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结"
+        availability = "公开可用性以同版本 GitHub Release 和发布后 CI 为准"
+        for label, document in documents.items():
+            require(frozen in document, f"{label} 缺少 FORMAL 冻结展示")
+            require(availability in document, f"{label} 缺少公开可用性展示")
+        require(VERSION in demo, "Demo 缺少当前版本展示")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    parser.add_argument("--scope", choices=("machine", "docs"), required=True)
+    parser.add_argument("--podspec-json", type=Path)
+    parser.add_argument(
+        "--release-kind", choices=("none", "draft", "formal"), default="none"
+    )
+    args = parser.parse_args()
+    try:
+        if args.scope == "machine":
+            if args.podspec_json is None:
+                parser.error("--scope machine 必须提供 --podspec-json")
+            verify_machine(
+                args.root.resolve(), args.release_kind, args.podspec_json.resolve()
+            )
+        else:
+            verify_docs(args.root.resolve(), args.release_kind)
+    except (ContractError, OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"FAIL {error}", file=sys.stderr)
+        return 1
+    print(f"OK {args.scope} contract")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
