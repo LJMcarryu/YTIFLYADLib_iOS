@@ -22,10 +22,50 @@ ARTIFACTS = [
     {"name": "YTIFLYADLib.xcframework.zip", "contentSha256": "303e185b70d5396f9438c8e6a96239fbb1e1ef93166f8487ac4e6ebfb58d3b09"},
 ]
 
+FROZEN_ARTIFACTS = [
+    {"name": "checksums.txt", "contentSha256": "6d025d9b3abcf75ee411b445bc0a3af21d1a5ddd8fc60f6ae26d3458789eb244"},
+    {"name": "delivery-manifest.json", "contentSha256": "15cbc25f0f67cb1e2c4857bf9ba05defee39ad375d9178f4c60054c189761573"},
+    {"name": "YTIFLYADLib-6.2.4.zip", "contentSha256": "5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9"},
+    {"name": "YTIFLYADLib.xcframework.zip", "contentSha256": "5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263"},
+]
+
+CLOSED_STATE = {
+    "schemaVersion": 1,
+    "channel": "yt",
+    "repository": "LJMcarryu/YTIFLYADLib_iOS",
+    "version": "6.2.3",
+    "phase": "CLOSED",
+    "binarySourceCommit": "ea0240e620b57d7275e486199099c648f51de257",
+    "releaseMetadataCommit": "0f26b7647e6c1aadb32eca68b24f6845639a59c2",
+    "artifactInventory": {
+        "count": 4,
+        "sha256": "023610d4c8d338a2705f04752c0ca99f55bf3fc23c4c06af933e9b24cd399cdd",
+    },
+    "appleReview": {
+        "requiredForRelease": False,
+        "statusAtFreeze": "not-run",
+        "evidenceIncluded": False,
+    },
+    "publication": {
+        "releaseId": 370465034,
+        "tagName": "6.2.3",
+        "tagObjectSha": "219d6e359f848360c06d1f529d450d66f23b550f",
+        "tagCommitSha": "09148ce3c651b3dfc35cae3c873baab6d8105950",
+        "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.3",
+        "publishedAt": "2026-08-16T10:24:53Z",
+        "formalConsumerRunId": 31941599341,
+        "formalConsumerRunUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/31941599341",
+        "conclusion": "success",
+        "verifiedAt": "2026-08-16T10:26:18Z",
+    },
+}
+
 
 class ReleaseStateTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.state = json.loads((ROOT / "release-state.json").read_text(encoding="utf-8"))
+        # CLOSED 生成与迁移单测使用不可变夹具；候选分支可合法把实时状态
+        # 改为 6.2.4/FROZEN，不能反向污染历史 CLOSED 预期。
+        self.state = copy.deepcopy(CLOSED_STATE)
         self.facts = {
             key: copy.deepcopy(value)
             for key, value in self.state.items()
@@ -38,17 +78,50 @@ class ReleaseStateTests(unittest.TestCase):
         path.write_text(json.dumps(self.facts), encoding="utf-8")
         return path
 
-    def test_current_state_is_rebuilt_exactly_from_content_digests(self) -> None:
+    def test_closed_fixture_is_rebuilt_exactly_from_content_digests(self) -> None:
         generated = release_state.build_closed_state(self.facts)
         self.assertEqual(generated, self.state)
-        self.assertEqual(
-            release_state.canonical_json(generated),
-            (ROOT / "release-state.json").read_text(encoding="utf-8"),
-        )
+        self.assertEqual(release_state.canonical_json(generated),
+                         release_state.canonical_json(self.state))
         self.assertEqual(generated["artifactInventory"], {
             "count": 4,
             "sha256": "023610d4c8d338a2705f04752c0ca99f55bf3fc23c4c06af933e9b24cd399cdd",
         })
+
+    def test_current_repository_state_is_independently_valid(self) -> None:
+        current = json.loads(
+            (ROOT / "release-state.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            release_state.validate_state(
+                current,
+                expected_channel="yt",
+                expected_repository="LJMcarryu/YTIFLYADLib_iOS",
+            ),
+            current,
+        )
+
+    def test_624_frozen_candidate_is_built_from_frozen_asset_facts(self) -> None:
+        facts = {
+            "schemaVersion": 1,
+            "channel": "yt",
+            "repository": "LJMcarryu/YTIFLYADLib_iOS",
+            "version": "6.2.4",
+            "phase": "FROZEN",
+            "binarySourceCommit": "b0f745d582ce2bed5110702cff972be4153e5038",
+            "releaseMetadataCommit": "7b08118b43a0c4441de4c76a64f34fa54b3fe889",
+            "artifacts": copy.deepcopy(FROZEN_ARTIFACTS),
+            "appleReview": copy.deepcopy(self.state["appleReview"]),
+        }
+        frozen = release_state.build_frozen_state(facts)
+        self.assertEqual(frozen["version"], "6.2.4")
+        self.assertEqual(frozen["phase"], "FROZEN")
+        self.assertIsNone(frozen["publication"])
+        self.assertEqual(frozen["artifactInventory"], {
+            "count": 4,
+            "sha256": "0c0fe6068bdc9b1732bd0fcd8a07552bfb0eeb6444729afc3dd684c373b9cdc6",
+        })
+        release_state.validate_state_transition(self.state, frozen)
 
     def test_dry_run_prints_state_without_writing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

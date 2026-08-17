@@ -187,8 +187,7 @@ jobs:
         run: |
           python3 scripts/release_state.py release-state.json \
             --expected-channel yt \
-            --expected-repository "$GITHUB_REPOSITORY" \
-            --expected-version 6.2.3
+            --expected-repository "$GITHUB_REPOSITORY"
 
       - name: 读取仓库当前版本
         id: repository-version
@@ -347,7 +346,8 @@ jobs:
           assert podspec_json["frameworks"] == ["AdSupport"]
           assert podspec_json["weak_frameworks"] == ["AppTrackingTransparency"]
           machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
-          assert machine["phase"] in {"FROZEN", "PUBLISHED", "VERIFIED", "CLOSED"}
+          assert machine["version"] == version
+          assert machine["phase"] == "FROZEN"
           PY
           test -z "$(git status --porcelain)"
 
@@ -372,7 +372,7 @@ jobs:
       - name: Tag push 校验 annotated tag 与 checkout 绑定
         if: github.ref_type == 'tag'
         run: |
-          test "${GITHUB_REF_NAME}" = '6.2.3'
+          test "${GITHUB_REF_NAME}" = '6.2.4'
           test -z "$(git status --porcelain)"
           test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = 'tag'
           test "$(git rev-parse HEAD)" = "$(git rev-parse "${GITHUB_REF_NAME}^{commit}")"
@@ -513,7 +513,7 @@ jobs:
       - name: 校验 CI Xcode 与 Release 身份
         run: |
           xcodebuild -version
-          test "${RELEASE_TAG}" = '6.2.3'
+          test "${RELEASE_TAG}" = '6.2.4'
           test "${RELEASE_TAG}" = "${REPOSITORY_VERSION}"
           test -z "$(git status --porcelain)"
           if [[ "${RELEASE_KIND}" == 'draft' ]]; then

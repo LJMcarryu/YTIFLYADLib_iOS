@@ -12,11 +12,13 @@ import sys
 from pathlib import Path
 
 
-VERSION = "6.2.3"
+VERSION = "6.2.4"
+PREVIOUS_RELEASE_VERSION = "6.2.3"
 REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
-PENDING = "__YTIFLYADLIB_6_2_3_SWIFTPM_CHECKSUM_PENDING__"
+PENDING = "__YTIFLYADLIB_6_2_4_SWIFTPM_CHECKSUM_PENDING__"
 HISTORICAL = {
     "a3c31e6fc523aa2bb1af71849ba1dc893d94e69ae68246eab4d9d20cbb07232f",
+    "303e185b70d5396f9438c8e6a96239fbb1e1ef93166f8487ac4e6ebfb58d3b09",
 }
 
 
@@ -35,9 +37,26 @@ def read(root: Path, relative: str) -> str:
 
 def state(root: Path) -> dict[str, object]:
     value = json.loads(read(root, "release-state.json"))
-    require(value.get("version") == VERSION, "release-state 版本不匹配")
     require(value.get("channel") == "yt", "release-state 渠道不匹配")
     return value
+
+
+def validate_state_version(value: dict[str, object], release_kind: str) -> None:
+    version = value.get("version")
+    phase = value.get("phase")
+    if release_kind in {"draft", "formal"}:
+        require(
+            version == VERSION and phase == "FROZEN",
+            "candidate/tag/Release 必须使用当前分发版本的 FROZEN 状态",
+        )
+        return
+    if version == VERSION:
+        return
+    require(
+        version == PREVIOUS_RELEASE_VERSION and phase == "CLOSED",
+        "release-state 版本不匹配：普通 main 只允许保留上一版 CLOSED，"
+        "candidate/tag/Release 必须与当前分发版本一致",
+    )
 
 
 def one(pattern: str, text: str, label: str) -> str:
@@ -51,6 +70,7 @@ def verify_machine(
 ) -> None:
     require(release_kind in {"none", "draft", "formal"}, "非法验证类型")
     machine = state(root)
+    validate_state_version(machine, release_kind)
     package = read(root, "Package.swift")
     podspec = read(root, "YTIFLYADLib.podspec")
     podfile = read(root, "YTIFLYADLibSimple/Podfile")
@@ -130,6 +150,7 @@ def verify_machine(
 
 def verify_docs(root: Path, _release_kind: str) -> None:
     machine = state(root)
+    validate_state_version(machine, _release_kind)
     documents = {
         name: read(root, name)
         for name in ("README.md", "CHANGELOG.md", "RELEASING.md")

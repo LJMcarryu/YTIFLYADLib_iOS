@@ -17,8 +17,9 @@ from urllib.request import Request, urlopen
 PRIVATE_SOURCE_REPOSITORY = "LJMcarryu/IFLYADLibDemo"
 USER_AGENT = "YTIFLYADLib-private-provenance-verifier"
 ALLOWED_METADATA_FILES = {"Package.swift", "README.md", "CONTEXT.md"}
-PENDING_BINARY = "__YTIFLYADLIB_6_2_3_BINARY_SOURCE_COMMIT_PENDING__"
-PENDING_METADATA = "__YTIFLYADLIB_6_2_3_RELEASE_METADATA_COMMIT_PENDING__"
+CURRENT_RELEASE_VERSION = "6.2.4"
+PENDING_BINARY = "__YTIFLYADLIB_6_2_4_BINARY_SOURCE_COMMIT_PENDING__"
+PENDING_METADATA = "__YTIFLYADLIB_6_2_4_RELEASE_METADATA_COMMIT_PENDING__"
 
 
 class VerificationError(RuntimeError):
@@ -30,7 +31,36 @@ def require(condition: bool, message: str) -> None:
         raise VerificationError(message)
 
 
+def current_release_section(document: str, label: str) -> str:
+    """返回唯一的当前版本 Markdown 章节，排除历史版本声明。"""
+
+    heading = re.compile(
+        rf"^(?P<marks>\#{{1,6}})[ \t]+(?:\[{re.escape(CURRENT_RELEASE_VERSION)}\]|"
+        rf"{re.escape(CURRENT_RELEASE_VERSION)})(?=$|[ \t（(])",
+    )
+    generic_heading = re.compile(r"^(?P<marks>\#{1,6})[ \t]+")
+    lines = document.splitlines(keepends=True)
+    matches = [
+        (index, len(match.group("marks")))
+        for index, line in enumerate(lines)
+        if (match := heading.match(line)) is not None
+    ]
+    require(
+        len(matches) == 1,
+        f"{label} 必须唯一包含 {CURRENT_RELEASE_VERSION} 当前发布状态节",
+    )
+    start, level = matches[0]
+    end = len(lines)
+    for index in range(start + 1, len(lines)):
+        match = generic_heading.match(lines[index])
+        if match is not None and len(match.group("marks")) <= level:
+            end = index
+            break
+    return "".join(lines[start:end])
+
+
 def parse_document(document: str, label: str) -> Tuple[str, str, str]:
+    section = current_release_section(document, label)
     binary_patterns = (
         r"^\s*-\s*`binarySourceCommit`（SDK 二进制源码提交）：`([^`]+)`\s*$",
         r"^\s*binarySourceCommit（提交 A）：`([^`]+)`\s*$",
@@ -41,17 +71,17 @@ def parse_document(document: str, label: str) -> Tuple[str, str, str]:
         r"^\s*releaseMetadataCommit（提交 B）：`([^`]+)`\s*$",
     )
     binary_matches = [
-        value for pattern in binary_patterns for value in re.findall(pattern, document, re.M)
+        value for pattern in binary_patterns for value in re.findall(pattern, section, re.M)
     ]
     metadata_matches = [
-        value for pattern in metadata_patterns for value in re.findall(pattern, document, re.M)
+        value for pattern in metadata_patterns for value in re.findall(pattern, section, re.M)
     ]
     states = re.findall(
-        r"^\s*-\s*`releaseState`：`(PENDING|FORMAL)`\s*$", document, re.M
+        r"^\s*-\s*`releaseState`：`(PENDING|FORMAL)`\s*$", section, re.M
     )
     require(
         len(binary_matches) == len(metadata_matches) == len(states) == 1,
-        f"{label} 必须唯一声明 releaseState/A/B",
+        f"{label} 的 {CURRENT_RELEASE_VERSION} 当前节必须唯一声明 releaseState/A/B",
     )
     binary_commit = binary_matches[0]
     metadata_commit = metadata_matches[0]
