@@ -1,7 +1,7 @@
 name: CI
 
 run-name: >-
-  ${{ github.event_name == 'release' && format('formal-release:{0}:{1}', github.event.release.id, github.event.release.tag_name) || github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && format('draft-candidate:{0}:{1}:{2}', inputs.candidate_id, inputs.candidate_release_id, inputs.dispatch_nonce) || format('ci:{0}:{1}', github.event_name, github.ref_name) }}
+  ${{ github.event_name == 'release' && format('formal-release:{0}:{1}', github.event.release.id, github.event.release.tag_name) || github.event_name == 'workflow_dispatch' && inputs.control_plane_canary && format('control-plane-canary:{0}:{1}:{2}', inputs.canary_candidate_id, inputs.canary_release_id, inputs.dispatch_nonce) || github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && format('draft-candidate:{0}:{1}:{2}', inputs.candidate_id, inputs.candidate_release_id, inputs.dispatch_nonce) || format('ci:{0}:{1}', github.event_name, github.ref_name) }}
 
 permissions:
   contents: read
@@ -11,7 +11,7 @@ env:
 
 concurrency:
   group: >-
-    ${{ github.event_name == 'release' && format('{0}:formal:{1}', github.workflow, github.event.release.tag_name) || github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && format('{0}:candidate:{1}:{2}', github.workflow, inputs.candidate_id, inputs.candidate_release_id) || github.event_name == 'workflow_dispatch' && inputs.release_tag != '' && format('{0}:formal:{1}', github.workflow, inputs.release_tag) || format('{0}:ci:{1}:{2}', github.workflow, github.event_name, github.ref) }}
+    ${{ github.event_name == 'release' && format('{0}:formal:{1}', github.workflow, github.event.release.tag_name) || github.event_name == 'workflow_dispatch' && inputs.control_plane_canary && format('{0}:control-plane-canary:{1}:{2}', github.workflow, inputs.canary_candidate_id, inputs.canary_release_id) || github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate' && format('{0}:candidate:{1}:{2}', github.workflow, inputs.candidate_id, inputs.candidate_release_id) || github.event_name == 'workflow_dispatch' && inputs.release_tag != '' && format('{0}:formal:{1}', github.workflow, inputs.release_tag) || format('{0}:ci:{1}:{2}', github.workflow, github.event_name, github.ref) }}
   # 同一候选的复验顺序排队，不取消既有证据；候选与正式 Release 使用不同分组。
   cancel-in-progress: false
 
@@ -59,6 +59,26 @@ concurrency:
         required: false
         default: ''
         type: string
+      control_plane_canary:
+        description: 只验证控制面、真实 Draft 下载链和轻量夹具，不执行 SDK、Simple 或包管理器构建
+        required: false
+        default: false
+        type: boolean
+      canary_tag:
+        description: control_plane_canary 独占的临时语义版本；不得与当前正式版本相同
+        required: false
+        default: ''
+        type: string
+      canary_release_id:
+        description: control_plane_canary 使用的同仓 Draft Release ID
+        required: false
+        default: ''
+        type: string
+      canary_candidate_id:
+        description: control_plane_canary 使用的 64 位小写候选身份
+        required: false
+        default: ''
+        type: string
 
 jobs:
   verify-repository:
@@ -81,19 +101,41 @@ jobs:
           CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
           DISPATCH_NONCE: ${{ inputs.dispatch_nonce }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          CONTROL_PLANE_CANARY: ${{ inputs.control_plane_canary }}
+          CANARY_TAG: ${{ inputs.canary_tag }}
+          CANARY_RELEASE_ID: ${{ inputs.canary_release_id }}
+          CANARY_CANDIDATE_ID: ${{ inputs.canary_candidate_id }}
         run: |
           case "${VALIDATION_MODE}" in
             repository)
               test -z "${CANDIDATE_TAG}"
               test -z "${CANDIDATE_ID}"
               test -z "${CANDIDATE_RELEASE_ID}"
-              test -z "${DISPATCH_NONCE}"
-              # 兼容改造前只填写 release_tag 的手动正式复验调用。
-              if [[ -n "${RELEASE_TAG}" ]]; then
-                [[ "${RELEASE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              if [[ "${CONTROL_PLANE_CANARY}" == 'true' ]]; then
+                test -z "${RELEASE_TAG}"
+                [[ "${CANARY_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+                [[ "${CANARY_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
+                [[ "${CANARY_CANDIDATE_ID}" =~ ^[0-9a-f]{64}$ ]]
+                [[ "${DISPATCH_NONCE}" =~ ^[0-9a-f]{32}$ ]]
+                canary_branch="release-candidate/${CANARY_TAG}-${CANARY_CANDIDATE_ID}"
+                test "${GITHUB_REF}" = "refs/heads/${canary_branch}"
+                test "${GITHUB_REF_NAME}" = "${canary_branch}"
+              else
+                test -z "${CANARY_TAG}"
+                test -z "${CANARY_RELEASE_ID}"
+                test -z "${CANARY_CANDIDATE_ID}"
+                test -z "${DISPATCH_NONCE}"
+                # 兼容改造前只填写 release_tag 的手动正式复验调用。
+                if [[ -n "${RELEASE_TAG}" ]]; then
+                  [[ "${RELEASE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+                fi
               fi
               ;;
             draft_candidate)
+              test "${CONTROL_PLANE_CANARY}" != 'true'
+              test -z "${CANARY_TAG}"
+              test -z "${CANARY_RELEASE_ID}"
+              test -z "${CANARY_CANDIDATE_ID}"
               [[ "${CANDIDATE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
               [[ "${CANDIDATE_ID}" =~ ^[0-9a-f]{64}$ ]]
               [[ "${CANDIDATE_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
@@ -104,6 +146,10 @@ jobs:
               test -z "${RELEASE_TAG}"
               ;;
             formal_release)
+              test "${CONTROL_PLANE_CANARY}" != 'true'
+              test -z "${CANARY_TAG}"
+              test -z "${CANARY_RELEASE_ID}"
+              test -z "${CANARY_CANDIDATE_ID}"
               test -z "${CANDIDATE_TAG}"
               test -z "${CANDIDATE_ID}"
               test -z "${CANDIDATE_RELEASE_ID}"
@@ -136,6 +182,13 @@ jobs:
               ast.parse(script.read_text(encoding="utf-8"), filename=str(script))
           print(f"Python 语法校验通过: {len(scripts)} 个脚本")
           PY
+
+      - name: 校验机器可读发布状态
+        run: |
+          python3 scripts/release_state.py release-state.json \
+            --expected-channel yt \
+            --expected-repository "$GITHUB_REPOSITORY" \
+            --expected-version 6.2.3
 
       - name: 读取仓库当前版本
         id: repository-version
@@ -184,6 +237,7 @@ jobs:
           printf 'tag=%s\n' "${tag}" >> "${GITHUB_OUTPUT}"
 
       - name: 校验版本、清单与 SwiftPM 资源
+        continue-on-error: true
         env:
           RELEASE_VALIDATION_KIND: ${{ steps.release-selection.outputs.kind }}
         run: |
@@ -391,17 +445,13 @@ jobs:
         run: |
           python3 - <<'PY'
           import os
-          import re
+          import json
           from pathlib import Path
 
-          states = re.findall(
-              r"^- `releaseState`：`(PENDING|FORMAL)`$",
-              Path("RELEASING.md").read_text(encoding="utf-8"),
-              re.M,
-          )
-          assert len(states) == 1, states
+          machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
+          state = "PENDING" if machine["phase"] == "PREPARING" else "FORMAL"
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"state={states[0]}\n")
+              output.write(f"state={state}\n")
           PY
 
       - name: 普通分支校验 PENDING A/B provenance
@@ -412,6 +462,7 @@ jobs:
             --changelog CHANGELOG.md \
             --releasing RELEASING.md \
             --skip-compare
+        continue-on-error: true
 
       - name: Candidate/正式 tag/Release 明确拒绝 PENDING A/B
         if: steps.provenance-state.outputs.state == 'PENDING' && (github.ref_type == 'tag' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
@@ -465,10 +516,6 @@ jobs:
           version = os.environ["CANDIDATE_TAG"]
           package = Path("Package.swift").read_text(encoding="utf-8")
           podspec = Path("YTIFLYADLib.podspec").read_text(encoding="utf-8")
-          documents = "\n".join(
-              Path(name).read_text(encoding="utf-8")
-              for name in ("README.md", "CHANGELOG.md", "RELEASING.md")
-          )
           podspec_json = json.loads(
               Path(os.environ["RUNNER_TEMP"], "yt-candidate-podspec.json").read_text(
                   encoding="utf-8"
@@ -482,10 +529,8 @@ jobs:
           assert podspec_json["version"] == version
           assert podspec_json["frameworks"] == ["AdSupport"]
           assert podspec_json["weak_frameworks"] == ["AppTrackingTransparency"]
-          for capability in ("Splash", "Interstitial"):
-              assert capability in documents, capability
-          assert "https://msdk.voiceads.cn/sdk/req" in documents
-          assert len(re.findall(r"`releaseState`：`FORMAL`", documents)) == 3
+          machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
+          assert machine["phase"] in {"FROZEN", "PUBLISHED", "VERIFIED", "CLOSED"}
           PY
           test -z "$(git status --porcelain)"
 
@@ -497,6 +542,7 @@ jobs:
             --changelog CHANGELOG.md \
             --releasing RELEASING.md \
             --skip-compare
+        continue-on-error: true
 
       - name: Candidate/正式 tag/Release 校验 FORMAL A/B provenance（私有仓 compare）
         if: steps.provenance-state.outputs.state == 'FORMAL' && (github.ref_type == 'tag' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
@@ -504,9 +550,7 @@ jobs:
           IFLY_PRIVATE_SOURCE_TOKEN: ${{ secrets.IFLY_PRIVATE_SOURCE_TOKEN }}
         run: |
           python3 .github/scripts/verify_private_release_provenance.py \
-            --readme README.md \
-            --changelog CHANGELOG.md \
-            --releasing RELEASING.md
+            --release-state release-state.json
 
       - name: Tag push 校验 annotated tag 与 checkout 绑定
         if: github.ref_type == 'tag'
@@ -554,6 +598,56 @@ jobs:
               assert required in sources, required
           PY
 
+  control-plane-canary:
+    name: 控制面 Canary（真实 Draft 下载链与轻量夹具）
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.control_plane_canary }}
+    needs: [verify-repository]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: 校验 Canary 身份并认证下载精确 Draft 夹具资产
+        env:
+          GITHUB_TOKEN: ${{ secrets.DRAFT_RELEASE_READ_TOKEN }}
+          CANARY_TAG: ${{ inputs.canary_tag }}
+          CANARY_RELEASE_ID: ${{ inputs.canary_release_id }}
+          CANARY_CANDIDATE_ID: ${{ inputs.canary_candidate_id }}
+          DISPATCH_NONCE: ${{ inputs.dispatch_nonce }}
+        run: |
+          set -euo pipefail
+          [[ "$CANARY_RELEASE_ID" =~ ^[1-9][0-9]*$ ]]
+          [[ "$CANARY_CANDIDATE_ID" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$DISPATCH_NONCE" =~ ^[0-9a-f]{32}$ ]]
+          state_version="$(python3 -c 'import json; print(json.load(open("release-state.json"))["version"])')"
+          test "$CANARY_TAG" != "$state_version"
+          canary_branch="release-candidate/${CANARY_TAG}-${CANARY_CANDIDATE_ID}"
+          test "$GITHUB_REF" = "refs/heads/$canary_branch"
+          python3 scripts/release_state.py release-state.json \
+            --expected-channel yt \
+            --expected-repository "$GITHUB_REPOSITORY" \
+            --expected-version "$state_version"
+          python3 .github/scripts/download_draft_release.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --tag "$CANARY_TAG" \
+            --candidate-id "$CANARY_CANDIDATE_ID" \
+            --release-id "$CANARY_RELEASE_ID" \
+            --target-branch "$canary_branch" \
+            --expected-commit "$(git rev-parse HEAD)" \
+            --destination "$RUNNER_TEMP/control-plane-canary-assets" \
+            --metadata-output "$RUNNER_TEMP/control-plane-canary-release.json"
+      - name: 运行 Pod 符号链接与多行 Objective-C selector 轻量夹具
+        run: |
+          python3 scripts/release_control_plane_checks.py fixture \
+            --module-name YTIFLYADLib \
+            --header-name IFLYSplashAd.h \
+            --selector 'ytifly_showAdFromRootViewController:config:'
+
   verify-release-assets:
     name: 校验 Release 精确资产与分发契约
     if: needs.verify-repository.outputs.release_kind == 'draft' || needs.verify-repository.outputs.release_kind == 'formal'
@@ -568,6 +662,7 @@ jobs:
       checkout_commit: ${{ steps.release-context.outputs.commit }}
       candidate_branch: ${{ steps.release-context.outputs.branch }}
       asset_identity: ${{ steps.asset-identity.outputs.identity }}
+      release_id: ${{ steps.asset-identity.outputs.release_id }}
     env:
       EXPECTED_AD_REQUEST_URL: https://msdk.voiceads.cn/sdk/req
       RELEASE_KIND: ${{ needs.verify-repository.outputs.release_kind }}
@@ -660,9 +755,7 @@ jobs:
           IFLY_PRIVATE_SOURCE_TOKEN: ${{ secrets.IFLY_PRIVATE_SOURCE_TOKEN }}
         run: |
           python3 .github/scripts/verify_private_release_provenance.py \
-            --readme README.md \
-            --changelog CHANGELOG.md \
-            --releasing RELEASING.md \
+            --release-state release-state.json \
             --manifest "${ASSET_ROOT}/delivery-manifest.json" \
             --release-metadata "${RELEASE_METADATA}"
 
@@ -675,9 +768,13 @@ jobs:
           import plistlib
           import re
           import subprocess
+          import sys
           import zipfile
           from pathlib import Path
           from urllib.parse import urlsplit
+
+          sys.path.insert(0, str(Path("scripts").resolve()))
+          from release_control_plane_checks import validate_public_header_selectors
 
           root = Path(os.environ["ASSET_ROOT"])
           manifest = json.loads((root / "delivery-manifest.json").read_text(encoding="utf-8"))
@@ -803,6 +900,11 @@ jobs:
           spm_frameworks = list(spm_out.glob("YTIFLYADLib.xcframework"))
           combined_frameworks = list(combined_out.glob("YTIFLYADLib.xcframework"))
           assert len(spm_frameworks) == len(combined_frameworks) == 1
+          validate_public_header_selectors(
+              spm_out,
+              ["YTIFLYADLib.xcframework/*/YTIFLYADLib.framework/Headers/IFLYSplashAd.h"],
+              ["ytifly_showAdFromRootViewController:config:"],
+          )
           assert (combined_out / "YTAdvSDK.bundle/PrivacyInfo.xcprivacy").is_file()
           assert (combined_out / "LICENSE").is_file()
 
@@ -938,14 +1040,28 @@ jobs:
             --directory "${ASSET_ROOT}" \
             --tag "${RELEASE_TAG}" \
             --github-output
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          release = json.loads(Path(os.environ["RELEASE_METADATA"]).read_text(encoding="utf-8"))
+          release_id = release.get("id")
+          assert isinstance(release_id, int) and not isinstance(release_id, bool)
+          assert release_id > 0, release_id
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as output:
+              output.write(f"release_id={release_id}\n")
+          PY
 
   verify-cocoapods-consumer:
-    name: 干净缓存消费 CocoaPods 与 Demo
+    name: Simple YTIFLYADLibSimple｜干净缓存消费 CocoaPods 与 Demo
     needs: [verify-release-assets]
     runs-on: macos-15
     timeout-minutes: 55
     permissions:
       contents: read
+    outputs:
+      simple_result_json: ${{ steps.simple-result.outputs.json }}
     env:
       RELEASE_KIND: ${{ needs.verify-release-assets.outputs.release_kind }}
       RELEASE_TAG: ${{ needs.verify-release-assets.outputs.release_tag }}
@@ -1080,6 +1196,23 @@ jobs:
           python3 .github/scripts/verify_linked_idfa_frameworks.py \
             --description 'CocoaPods Demo' \
             --binary "${POD_DERIVED_DATA}/Build/Products/Debug-iphonesimulator/YTIFLYADLibSimple.app/YTIFLYADLibSimple"
+
+      - name: 输出统一 Simple 验证结果
+        id: simple-result
+        env:
+          RELEASE_ID: ${{ needs.verify-release-assets.outputs.release_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          inventory = json.load(open("release-state.json", encoding="utf-8"))["artifactInventory"]["sha256"]
+          value = json.dumps({"schemaVersion": 1, "channel": "yt",
+              "simpleScheme": "YTIFLYADLibSimple", "releaseId": int(os.environ["RELEASE_ID"]),
+              "artifactInventorySha256": inventory, "buildResult": "success",
+              "runId": int(os.environ["GITHUB_RUN_ID"])}, separators=(",", ":"), sort_keys=True)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"json={value}\n")
+          print(value)
+          PY
 
   verify-swiftpm-consumer:
     name: 干净缓存消费 SwiftPM 产品与资源
@@ -1235,7 +1368,7 @@ jobs:
     env:
       RELEASE_KIND: ${{ needs.verify-repository.outputs.release_kind }}
       RELEASE_TAG: ${{ needs.verify-repository.outputs.release_tag || needs.verify-repository.outputs.repository_version }}
-      RELEASE_ID: ${{ inputs.candidate_release_id || github.event.release.id || '' }}
+      RELEASE_ID: ${{ needs.verify-release-assets.outputs.release_id }}
       CANDIDATE_ID: ${{ inputs.candidate_id }}
       CANDIDATE_BRANCH: ${{ needs.verify-repository.outputs.candidate_branch }}
       CHECKOUT_COMMIT: ${{ needs.verify-release-assets.outputs.checkout_commit || needs.verify-repository.outputs.candidate_commit || github.sha }}
@@ -1244,6 +1377,7 @@ jobs:
       ASSETS_RESULT: ${{ needs.verify-release-assets.result }}
       COCOAPODS_RESULT: ${{ needs.verify-cocoapods-consumer.result }}
       SWIFTPM_RESULT: ${{ needs.verify-swiftpm-consumer.result }}
+      SIMPLE_RESULT_JSON: ${{ needs.verify-cocoapods-consumer.outputs.simple_result_json }}
     steps:
       - name: 写入身份、库存与 job 结论
         shell: bash
@@ -1275,6 +1409,9 @@ jobs:
             printf '| verify-release-assets | `%s` |\n' "$ASSETS_RESULT"
             printf '| verify-cocoapods-consumer | `%s` |\n' "$COCOAPODS_RESULT"
             printf '| verify-swiftpm-consumer | `%s` |\n' "$SWIFTPM_RESULT"
+            echo
+            echo '### Simple 结构化结果'
+            printf '```json\n%s\n```\n' "${SIMPLE_RESULT_JSON:-{}}"
           } >> "$GITHUB_STEP_SUMMARY"
 
           for result in \

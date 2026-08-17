@@ -217,9 +217,10 @@ def urlsplit_host(url: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--readme", type=Path, required=True)
-    parser.add_argument("--changelog", type=Path, required=True)
-    parser.add_argument("--releasing", type=Path, required=True)
+    parser.add_argument("--readme", type=Path)
+    parser.add_argument("--changelog", type=Path)
+    parser.add_argument("--releasing", type=Path)
+    parser.add_argument("--release-state", type=Path)
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--release-metadata", type=Path)
     parser.add_argument("--token-env", default="IFLY_PRIVATE_SOURCE_TOKEN")
@@ -227,9 +228,23 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        state, binary_commit, metadata_commit = validate_documents(
-            (args.readme, args.changelog, args.releasing)
-        )
+        if args.release_state:
+            sys.path.insert(0, str(Path.cwd() / "scripts"))
+            from release_state import validate_state
+
+            machine_state = validate_state(json.loads(args.release_state.read_text(encoding="utf-8")))
+            require(machine_state["phase"] != "PREPARING", "发布 provenance 不接受 PREPARING")
+            state = "FORMAL"
+            binary_commit = machine_state["binarySourceCommit"]
+            metadata_commit = machine_state["releaseMetadataCommit"]
+            require(not any((args.readme, args.changelog, args.releasing)),
+                    "--release-state 不得混入 Markdown provenance 输入")
+        else:
+            require(all((args.readme, args.changelog, args.releasing)),
+                    "维护检查必须同时提供 README/CHANGELOG/RELEASING")
+            state, binary_commit, metadata_commit = validate_documents(
+                (args.readme, args.changelog, args.releasing)
+            )
         if state == "PENDING":
             require(args.skip_compare, "PENDING 准备态只能跳过私有仓 compare")
             require(not args.manifest and not args.release_metadata,
