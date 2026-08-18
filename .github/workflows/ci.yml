@@ -248,8 +248,7 @@ jobs:
               --release-kind "${RELEASE_VALIDATION_KIND}" \
               --podspec-json "${RUNNER_TEMP}/yt-podspec.json"
 
-      - name: 非阻断校验 Markdown 发布展示措辞
-        continue-on-error: true
+      - name: 阻断校验 Markdown 发布状态契约
         env:
           RELEASE_VALIDATION_KIND: ${{ steps.release-selection.outputs.kind }}
           WORKFLOW_CONTROL_SHA: ${{ github.workflow_sha }}
@@ -359,7 +358,6 @@ jobs:
             --changelog CHANGELOG.md \
             --releasing RELEASING.md \
             --skip-compare
-        continue-on-error: true
 
       - name: Candidate/正式 tag/Release 校验 FORMAL A/B provenance（私有仓 compare）
         if: steps.provenance-state.outputs.state == 'FORMAL' && (github.ref_type == 'tag' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
