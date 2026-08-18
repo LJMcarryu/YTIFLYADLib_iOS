@@ -16,6 +16,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from download_release_anonymously import (
     VerificationError,
+    download_with_retry,
     expected_asset_names,
     require,
     validate_asset_inventory,
@@ -241,35 +242,20 @@ def stable_release_snapshot(release: Dict[str, Any]) -> Dict[str, Any]:
 def download_and_hash(
     opener: Any, asset: Dict[str, Any], destination: Path, token: str
 ) -> str:
-    request = build_authenticated_request(
-        asset["url"], "application/octet-stream", token
-    )
-    digest = hashlib.sha256()
-    downloaded_size = 0
-    try:
-        with opener.open(request, timeout=120) as response, destination.open("xb") as output:
-            final_url = urlsplit(response.geturl())
-            final_host = (final_url.hostname or "").lower()
-            require(final_url.scheme == "https", f"资产响应不是 HTTPS: {response.geturl()}")
-            require(
-                final_host == "api.github.com" or is_github_asset_host(final_host),
-                f"资产响应来自非 GitHub 资产主机: {response.geturl()}",
-            )
-            while True:
-                chunk = response.read(1024 * 1024)
-                if not chunk:
-                    break
-                output.write(chunk)
-                digest.update(chunk)
-                downloaded_size += len(chunk)
-    except Exception:
-        destination.unlink(missing_ok=True)
-        raise
-    require(
-        downloaded_size == asset["size"],
-        f"{asset['name']} 下载大小 {downloaded_size} 与 API size {asset['size']} 不一致",
-    )
-    return digest.hexdigest()
+    def open_response():
+        request = build_authenticated_request(
+            asset["url"], "application/octet-stream", token
+        )
+        return opener.open(request, timeout=120)
+
+    def validate_response(response) -> None:
+        final_url = urlsplit(response.geturl())
+        final_host = (final_url.hostname or "").lower()
+        require(final_url.scheme == "https", f"资产响应不是 HTTPS: {response.geturl()}")
+        require(final_host == "api.github.com" or is_github_asset_host(final_host),
+                f"资产响应来自非 GitHub 资产主机: {response.geturl()}")
+
+    return download_with_retry(asset, destination, open_response, validate_response)
 
 
 def download_release(
@@ -349,11 +335,14 @@ def download_release(
         resolve_target(release),
     )
 
-    destination.mkdir(parents=True, exist_ok=False)
+    destination.mkdir(parents=True, exist_ok=True)
+    for path in destination.iterdir():
+        require(path.is_file() and not path.is_symlink(),
+                f"下载目录只能包含普通文件缓存: {path}")
+        if path.name.endswith(".part"):
+            path.unlink()
     for name in sorted(assets):
         actual = download_and_hash(opener, assets[name], destination / name, token)
-        expected = assets[name]["digest"].removeprefix("sha256:")
-        require(actual == expected, f"{name} SHA-256 {actual} 与 API digest {expected} 不一致")
 
     final_request = build_authenticated_request(
         api_url, "application/vnd.github+json", token

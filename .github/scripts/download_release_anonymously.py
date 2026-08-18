@@ -5,14 +5,19 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import os
 import re
+import socket
+import ssl
 import sys
+import time
 from pathlib import Path
 from typing import Any, Dict
 from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
 
 TOKEN_ENVIRONMENT_VARIABLES = (
@@ -22,6 +27,7 @@ TOKEN_ENVIRONMENT_VARIABLES = (
     "IFLY_PRIVATE_SOURCE_TOKEN",
 )
 USER_AGENT = "YTIFLYADLib-anonymous-release-verifier"
+DOWNLOAD_MAX_ATTEMPTS = 5
 
 
 class VerificationError(RuntimeError):
@@ -124,32 +130,82 @@ def validate_release_metadata(
     return by_name
 
 
+def _retryable_download_error(error: BaseException) -> bool:
+    if isinstance(error, HTTPError):
+        return error.code in {408, 429} or 500 <= error.code <= 599
+    if isinstance(error, URLError):
+        return isinstance(error.reason, (TimeoutError, socket.timeout, ssl.SSLError, ConnectionError))
+    return isinstance(error, (TimeoutError, socket.timeout, ssl.SSLError, ConnectionError))
+
+
+def _verified_cache(asset: Dict[str, Any], destination: Path) -> str | None:
+    if not destination.exists() and not destination.is_symlink():
+        return None
+    require(destination.is_file() and not destination.is_symlink(),
+            f"{asset['name']} 缓存目标必须是普通文件")
+    if destination.stat().st_size != asset["size"]:
+        destination.unlink()
+        return None
+    actual = hashlib.sha256(destination.read_bytes()).hexdigest()
+    if not hmac.compare_digest(actual, asset["digest"].removeprefix("sha256:")):
+        destination.unlink()
+        return None
+    return actual
+
+
+def download_with_retry(asset: Dict[str, Any], destination: Path, open_response,
+                        validate_response, *, max_attempts: int = DOWNLOAD_MAX_ATTEMPTS,
+                        sleeper=time.sleep) -> str:
+    cached = _verified_cache(asset, destination)
+    if cached is not None:
+        return cached
+    temporary = destination.with_name(destination.name + ".part")
+    require(not temporary.is_symlink(), f"临时下载目标不得为符号链接: {temporary}")
+    temporary.unlink(missing_ok=True)
+    for attempt in range(1, max_attempts + 1):
+        try:
+            digest = hashlib.sha256()
+            downloaded_size = 0
+            with open_response() as response, temporary.open("xb") as output:
+                validate_response(response)
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    output.write(chunk)
+                    digest.update(chunk)
+                    downloaded_size += len(chunk)
+            require(downloaded_size == asset["size"],
+                    f"{asset['name']} 下载大小与 API size 不一致")
+            actual = digest.hexdigest()
+            require(hmac.compare_digest(actual, asset["digest"].removeprefix("sha256:")),
+                    f"{asset['name']} SHA-256 与 API digest 不一致")
+            temporary.replace(destination)
+            return actual
+        except Exception as error:
+            temporary.unlink(missing_ok=True)
+            if (isinstance(error, VerificationError) or not _retryable_download_error(error)
+                    or attempt == max_attempts):
+                raise
+            sleeper(min(2 ** (attempt - 1), 8))
+    raise AssertionError("unreachable")
+
+
 def download_and_hash(asset: Dict[str, Any], destination: Path) -> str:
-    request = build_anonymous_request(
-        asset["browser_download_url"], "application/octet-stream"
-    )
-    digest = hashlib.sha256()
-    downloaded_size = 0
-    with urlopen(request, timeout=120) as response, destination.open("wb") as output:
+    def open_response():
+        request = build_anonymous_request(
+            asset["browser_download_url"], "application/octet-stream"
+        )
+        return urlopen(request, timeout=120)
+
+    def validate_response(response) -> None:
         final_url = urlsplit(response.geturl())
         final_host = (final_url.hostname or "").lower()
         require(final_url.scheme == "https", f"资产重定向不是 HTTPS: {response.geturl()}")
-        require(
-            final_host == "github.com" or final_host.endswith(".githubusercontent.com"),
-            f"资产重定向到非 GitHub 主机: {response.geturl()}",
-        )
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            output.write(chunk)
-            digest.update(chunk)
-            downloaded_size += len(chunk)
-    require(
-        downloaded_size == asset["size"],
-        f"{asset['name']} 下载大小 {downloaded_size} 与 API size {asset['size']} 不一致",
-    )
-    return digest.hexdigest()
+        require(final_host == "github.com" or final_host.endswith(".githubusercontent.com"),
+                f"资产重定向到非 GitHub 主机: {response.geturl()}")
+
+    return download_with_retry(asset, destination, open_response, validate_response)
 
 
 def download_release(
@@ -178,11 +234,13 @@ def download_release(
     assets = validate_release_metadata(release, repository, tag)
 
     destination.mkdir(parents=True, exist_ok=True)
-    require(not any(destination.iterdir()), f"下载目录必须为空: {destination}")
+    for path in destination.iterdir():
+        require(path.is_file() and not path.is_symlink(),
+                f"下载目录只能包含普通文件缓存: {path}")
+        if path.name.endswith(".part"):
+            path.unlink()
     for name in sorted(assets):
         actual = download_and_hash(assets[name], destination / name)
-        expected = assets[name]["digest"].removeprefix("sha256:")
-        require(actual == expected, f"{name} SHA-256 {actual} 与 API digest {expected} 不一致")
 
     actual_names = {path.name for path in destination.iterdir() if path.is_file()}
     require(

@@ -443,6 +443,45 @@ class ReleaseMetadataTests(unittest.TestCase):
 
 
 class RequestBoundaryTests(unittest.TestCase):
+    def test_asset_download_retries_timeout_and_reuses_verified_cache(self) -> None:
+        payload = b"asset"
+        item = {
+            "name": "asset.zip",
+            "size": len(payload),
+            "digest": "sha256:" + hashlib.sha256(payload).hexdigest(),
+        }
+        calls = 0
+        sleeps: list[int] = []
+
+        def open_response():
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                raise TimeoutError("TLS handshake timeout")
+            return FakeResponse(
+                payload, "https://release-assets.githubusercontent.com/object"
+            )
+
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "asset.zip"
+            actual = anonymous.download_with_retry(
+                item,
+                destination,
+                open_response,
+                lambda _response: None,
+                sleeper=sleeps.append,
+            )
+            cached = anonymous.download_with_retry(
+                item,
+                destination,
+                lambda: self.fail("缓存命中不得访问网络"),
+                lambda _response: None,
+            )
+            self.assertEqual(actual, cached)
+            self.assertFalse(Path(f"{destination}.part").exists())
+        self.assertEqual(calls, 2)
+        self.assertEqual(sleeps, [1])
+
     def test_anonymous_request_never_has_authorization(self) -> None:
         request = anonymous.build_anonymous_request(
             "https://api.github.com/repos/owner/repo/releases/tags/6.2.4",
