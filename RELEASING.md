@@ -13,12 +13,12 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`7b08118b43a0c4441de4c76a64f34fa54b3fe889`
 - `candidateId`：`61f427469346615982e0225fad8187611794cc0a54c452da83073e89fd5ea1bd`
 
-正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`，`YTIFLYADLib-6.2.4.zip` 的 SHA-256 为 `5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。GitHub Tag/Release、无 Token 匿名下载和正式消费验证尚待编排器完成；当前最新公开可用版仍为 `6.2.3`。
+正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结并公开；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`，`YTIFLYADLib-6.2.4.zip` 的 SHA-256 为 `5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。[GitHub Release 6.2.4](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4) 的 4 个资产已完成无 Token 匿名校验，正式消费 [Run 32027223281](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/32027223281) 为 `success`。
 
 `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 
-正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 保留上一版 `6.2.3/CLOSED`；Candidate 必须由编排器推进为 `6.2.4/FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确四资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
+正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 为 `6.2.4/CLOSED`；后续 Candidate 必须由编排器从该关闭态推进到新版本 `FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
 
 本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
 

@@ -4,17 +4,18 @@
 
 ## 6.2.4 发布状态
 
-`6.2.4` 的正式签名资产、checksum 和 A/B 元数据已冻结，但 GitHub Tag/Release、无 Token 匿名下载和正式消费验证尚未完成。当前最新公开可用版仍为 [`6.2.3`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.3)。最低支持 iOS 11.0，正式产物包含 arm64 真机与 arm64/x86_64 模拟器切片。
+当前最新公开正式版为 [`6.2.4`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4)，已于 2026-08-17 完成 Tag、Release、4 个资产无 Token 匿名校验和正式消费验证。最低支持 iOS 11.0，正式产物包含 arm64 真机与 arm64/x86_64 模拟器切片。
 
 <!-- 供发布 CI 机器校验的两提交 provenance；README、CHANGELOG、RELEASING 必须保持一致。 -->
 - `releaseState`：`FORMAL`
 - `binarySourceCommit`（SDK 二进制源码提交）：`b0f745d582ce2bed5110702cff972be4153e5038`
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`7b08118b43a0c4441de4c76a64f34fa54b3fe889`
 - `candidateId`：`61f427469346615982e0225fad8187611794cc0a54c452da83073e89fd5ea1bd`
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
+- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A，仓库根 `release-state.json` 已推进到 `6.2.4/CLOSED`。
 - 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
+- annotated Tag 解引用到 `4f4d5fbee33352d9c61d70fd286f8204ea145d60`，正式消费 [Run 32027223281](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/32027223281) 为 `success`。
 
-`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`；`YTIFLYADLib-6.2.4.zip` 的 SHA-256 为 `5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。候选分支由编排器将 `release-state.json` 从上一版 `6.2.3/CLOSED` 推进为 `6.2.4/FROZEN`；当前 `main` 保留历史关闭态不是版本漂移。
+`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`；`YTIFLYADLib-6.2.4.zip` 的 SHA-256 为 `5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。
 
 本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
 
@@ -39,7 +40,7 @@ YT 产物不包含 NativeFeed，因此 `6.2.4` 不引入外部 CTA 或 `71503` �
 
 ## 分发产物
 
-正式 `6.2.4` Release 将精确包含四个资产：
+正式 `6.2.4` Release 精确包含四个资产：
 
 | 文件 | 内容 | 适用方式 |
 | --- | --- | --- |
@@ -52,7 +53,7 @@ YT 产物不包含 NativeFeed，因此 `6.2.4` 不引入外部 CTA 或 `71503` �
 
 ## CocoaPods
 
-以下远程方式固定使用 `6.2.4` tag；同版本 Release 公开前不可用：
+以下远程方式固定使用已验证的 `6.2.4` tag 和同版本 Release 资产：
 
 ```ruby
 source 'https://cdn.cocoapods.org/'
@@ -77,7 +78,7 @@ https://github.com/LJMcarryu/YTIFLYADLib_iOS.git
 
 ## 手动接入
 
-1. 发布完成后下载并解压 `YTIFLYADLib-6.2.4.zip`。
+1. 下载并解压 `YTIFLYADLib-6.2.4.zip`。
 2. 将 `YTIFLYADLib.xcframework` 加入 App Target，Embed 选择“Do Not Embed”。
 3. 将 `YTAdvSDK.bundle` 加入 Copy Bundle Resources。
 4. 将 `-ObjC` 加入 App Target 的 `Other Linker Flags`。

@@ -2,11 +2,11 @@
 
 本工程演示 `YTIFLYADLib 6.2.4` 的开屏和插屏广告接入，两种格式均可展示图片或视频素材。Demo 不包含 Banner、激励视频或自渲染信息流入口。
 
-`Podfile` 已固定到 `6.2.4` tag；正式资产已经冻结，但 Tag/Release 与公开消费验证尚未完成，Release 公开前远程 Podfile 不可用。候选/正式 CI 会将精确的合并 zip 解压为本地 Pod，实际构建该 Demo。
+`Podfile` 已固定到已发布的 `6.2.4` tag；同版本 Release、匿名下载和公开消费验证均已完成。候选/正式 CI 会将精确的合并 zip 解压为本地 Pod，实际构建该 Demo。
 
 ## 使用方式
 
-正式发布后，在本目录执行：
+在本目录执行：
 
 ```bash
 pod install
