@@ -1,21 +1,29 @@
 # 版本记录
 
-## 6.2.4（2026-08-17）
+## 6.3.0（2026-08-25）
 
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.2.4","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4"} -->
+<!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.0","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0"} -->
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`b0f745d582ce2bed5110702cff972be4153e5038`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`7b08118b43a0c4441de4c76a64f34fa54b3fe889`
-- `candidateId`：`61f427469346615982e0225fad8187611794cc0a54c452da83073e89fd5ea1bd`
-- `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`；`YTIFLYADLib-6.2.4.zip` 的 SHA-256：`5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。[GitHub Release 6.2.4](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4) 的 4 个资产已完成无 Token 匿名校验。
+- `binarySourceCommit`（SDK 二进制源码提交）：`38eb0715f889fe2d585641891923511c9cc3e43e`
+- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`0e667f9f1a2d615d3f7e15a552f093c903ff1a57`
+- `candidateId`：`1b69dab08ac31e756b707d824b2548c2c2cfd66b343007d00e43efdbee795c44`
+- `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`144d0c649c1a83d8572e4a3a1295ec0430a65b788554fe62cccf6c12631a0aa5`；`YTIFLYADLib-6.3.0.zip` 的 SHA-256：`e422b4b7ed238136e90b596e4958bbabf59649dd656e38f394248b7efdb638f6`。
+- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 - 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
-- annotated Tag 解引用到 `4f4d5fbee33352d9c61d70fd286f8204ea145d60`，正式消费 [Run 32027223281](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/32027223281) 为 `success`。
-- `release-state.json` 已由编排器推进到 `6.2.4/CLOSED`。
-- YT 不包含 NativeFeed，本版不引入外部 CTA 或 `71503` 行为变化；仍从统一提交 A 重建，以保持四渠道版本一致并带出发布控制面改进。
+- `release-state.json` 在 `main` 继续保留历史 `6.2.4/CLOSED`；编排器生成的候选必须是 `6.3.0/FROZEN`。
+- YT 不包含 NativeFeed，本版不引入外部 CTA、媒体交互优先或结构化 `71503` 行为变化；仍从统一提交 A 重建。
 - 本版继续只包含 Splash、Interstitial 与图片/视频能力，白标、Bundle ID、资源、日志和通用请求地址契约不变。
 - Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。
+
+## 6.2.4（2026-08-17）
+
+- `releaseState`：`FORMAL`
+- `binarySourceCommit`：`b0f745d582ce2bed5110702cff972be4153e5038`
+- `releaseMetadataCommit`：`7b08118b43a0c4441de4c76a64f34fa54b3fe889`
+- `candidateId`：`61f427469346615982e0225fad8187611794cc0a54c452da83073e89fd5ea1bd`
+- `YTIFLYADLib.xcframework.zip` 的 SHA-256 为 `5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`；`YTIFLYADLib-6.2.4.zip` 的 SHA-256 为 `5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。
+- [GitHub Release 6.2.4](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4) 的 4 个资产已完成无 Token 匿名校验，正式消费 [Run 32027223281](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/32027223281) 为 `success`。
 
 ## 6.2.3
 

@@ -23,7 +23,7 @@ import verify_repository_contract as repository_contract
 
 ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
-TAG = "6.2.4"
+TAG = "6.3.0"
 CANDIDATE_ID = "a" * 64
 DISPATCH_NONCE = "d" * 32
 RELEASE_ID = 99
@@ -484,7 +484,7 @@ class RequestBoundaryTests(unittest.TestCase):
 
     def test_anonymous_request_never_has_authorization(self) -> None:
         request = anonymous.build_anonymous_request(
-            "https://api.github.com/repos/owner/repo/releases/tags/6.2.4",
+            "https://api.github.com/repos/owner/repo/releases/tags/6.3.0",
             "application/vnd.github+json",
         )
         self.assertNotIn(
@@ -626,22 +626,22 @@ class AssetIdentityTests(unittest.TestCase):
 
 
 class PrivateProvenanceDocumentTests(unittest.TestCase):
-    def test_current_624_section_ignores_historical_623(self) -> None:
+    def test_current_630_section_ignores_historical_624(self) -> None:
         document = provenance_section(
-            "6.2.4 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
-        ) + provenance_section("6.2.3", "FORMAL", "a" * 40, "b" * 40)
+            "6.3.0 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
+        ) + provenance_section("6.2.4", "FORMAL", "a" * 40, "b" * 40)
         self.assertEqual(
             private_provenance.parse_document(document, "测试文档"),
             ("FORMAL", BINARY_COMMIT, METADATA_COMMIT),
         )
 
-    def test_pending_624_section_ignores_historical_formal_section(self) -> None:
+    def test_pending_630_section_ignores_historical_formal_section(self) -> None:
         document = provenance_section(
-            "6.2.4（待发布）",
+            "6.3.0（待发布）",
             "PENDING",
             private_provenance.PENDING_BINARY,
             private_provenance.PENDING_METADATA,
-        ) + provenance_section("6.2.3", "FORMAL", "a" * 40, "b" * 40)
+        ) + provenance_section("6.2.4", "FORMAL", "a" * 40, "b" * 40)
         self.assertEqual(
             private_provenance.parse_document(document, "测试文档"),
             (
@@ -653,9 +653,9 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
 
     def test_duplicate_or_missing_current_section_fails_closed(self) -> None:
         current = provenance_section(
-            "6.2.4 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
+            "6.3.0 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
         )
-        historical = provenance_section("6.2.3", "FORMAL", "a" * 40, "b" * 40)
+        historical = provenance_section("6.2.4", "FORMAL", "a" * 40, "b" * 40)
         for document in (current + current, historical):
             with self.subTest(document=document):
                 with self.assertRaises(private_provenance.VerificationError):
@@ -663,7 +663,7 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
 
     def test_duplicate_contract_inside_current_section_fails_closed(self) -> None:
         current = provenance_section(
-            "6.2.4 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
+            "6.3.0 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
         )
         duplicate = current + (
             f"- `releaseState`：`FORMAL`\n"
@@ -708,9 +708,9 @@ class WorkflowStructureTests(unittest.TestCase):
         cls.podspec_json.write_text(podspec.stdout, encoding="utf-8")
         current = json.loads((ROOT / "release-state.json").read_text(encoding="utf-8"))
         cls.previous_closed_state = copy.deepcopy(current)
-        cls.previous_closed_state.update({"version": "6.2.3", "phase": "CLOSED"})
+        cls.previous_closed_state.update({"version": "6.2.4", "phase": "CLOSED"})
         cls.current_closed_state = copy.deepcopy(current)
-        cls.current_closed_state.update({"version": "6.2.4", "phase": "CLOSED"})
+        cls.current_closed_state.update({"version": "6.3.0", "phase": "CLOSED"})
 
     def patch_contract_state(self, state: dict[str, object]):
         original_read = repository_contract.read
@@ -1068,11 +1068,11 @@ class WorkflowStructureTests(unittest.TestCase):
                 repository_contract.ContractError
             ):
                 repository_contract.validate_state_version(
-                    {"version": "6.2.4", "phase": phase}, "none"
+                    {"version": "6.3.0", "phase": phase}, "none"
                 )
         for state in (
-            {"version": "6.2.3", "phase": "CLOSED"},
             {"version": "6.2.4", "phase": "CLOSED"},
+            {"version": "6.3.0", "phase": "CLOSED"},
         ):
             for release_kind in ("draft", "formal"):
                 with self.subTest(
@@ -1083,13 +1083,13 @@ class WorkflowStructureTests(unittest.TestCase):
         current = json.loads((ROOT / "release-state.json").read_text(encoding="utf-8"))
         frozen = copy.deepcopy(current)
         frozen.update({
-            "version": "6.2.4",
+            "version": "6.3.0",
             "phase": "FROZEN",
-            "binarySourceCommit": "b0f745d582ce2bed5110702cff972be4153e5038",
-            "releaseMetadataCommit": "7b08118b43a0c4441de4c76a64f34fa54b3fe889",
+            "binarySourceCommit": "38eb0715f889fe2d585641891923511c9cc3e43e",
+            "releaseMetadataCommit": "0e667f9f1a2d615d3f7e15a552f093c903ff1a57",
             "artifactInventory": {
                 "count": 4,
-                "sha256": "0c0fe6068bdc9b1732bd0fcd8a07552bfb0eeb6444729afc3dd684c373b9cdc6",
+                "sha256": "98597d98cbd8ec1f5ff66637f5ab6b9b37dd678f846d25082f320c6c365855dd",
             },
             "publication": None,
         })
@@ -1160,8 +1160,8 @@ class WorkflowStructureTests(unittest.TestCase):
             value = original_read(root, relative)
             if relative == "YTIFLYADLib.podspec":
                 return re.sub(
-                    r"(s\.version\s*=\s*['\"])6\.2\.4",
-                    r"\g<1>6.2.5",
+                    r"(s\.version\s*=\s*['\"])6\.3\.0",
+                    r"\g<1>6.3.1",
                     value,
                     count=1,
                 )
