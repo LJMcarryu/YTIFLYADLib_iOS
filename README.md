@@ -1,64 +1,40 @@
-# YTIFLYADLib iOS SDK 接入说明
+# YTIFLYADLib iOS SDK
 
-`YTIFLYADLib` 是优推（YT）媒体定制的 iOS 广告 SDK，仅提供开屏和插屏广告，两种广告均支持图片与视频素材。Banner、激励视频和自渲染信息流不在本产物中，对应公开头、类符号和专属资源会从最终包物理裁剪。
-
-## 6.3.0 发布状态
+`YTIFLYADLib` 是 YT 媒体定制的 iOS 广告 SDK，仅提供开屏和插屏；两种格式均支持图片与视频素材。本产物不包含 Banner、激励视频或自渲染信息流。
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.0","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0"} -->
 
-当前最新公开正式版为 [`6.3.0`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0)。正式签名资产、checksum 和 A/B 元数据已冻结；最低支持 iOS 11.0，正式产物包含 arm64 真机与 arm64/x86_64 模拟器切片。
+当前正式版本：[`6.3.0`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0)。生产项目请固定到具体版本，不要依赖 `main` 分支。
 
-<!-- 供发布 CI 机器校验的两提交 provenance；README、CHANGELOG、RELEASING 必须保持一致。 -->
-- `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`38eb0715f889fe2d585641891923511c9cc3e43e`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`0e667f9f1a2d615d3f7e15a552f093c903ff1a57`
-- `candidateId`：`1b69dab08ac31e756b707d824b2548c2c2cfd66b343007d00e43efdbee795c44`
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
-- 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
+## 能力矩阵
 
-`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `144d0c649c1a83d8572e4a3a1295ec0430a65b788554fe62cccf6c12631a0aa5`；`YTIFLYADLib-6.3.0.zip` 的 SHA-256 为 `e422b4b7ed238136e90b596e4958bbabf59649dd656e38f394248b7efdb638f6`。候选分支由编排器将 `release-state.json` 从上一版 `6.2.4/CLOSED` 推进为 `6.3.0/FROZEN`；当前 `main` 保留历史关闭态不是版本漂移。
-
-本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
-
-YT 产物不包含 NativeFeed，因此 `6.3.0` 不引入外部 CTA、媒体交互优先或结构化 `71503` 行为变化；本渠道仍从统一提交 A 重建，以保持公开渠道源码与发布身份一致。
-
-## 6.2.4 历史正式事实
-
-[`6.2.4`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4) 已于 2026-08-17 发布。其 A/B 分别为 `b0f745d582ce2bed5110702cff972be4153e5038` 和 `7b08118b43a0c4441de4c76a64f34fa54b3fe889`；annotated tag 解引用到 `4f4d5fbee33352d9c61d70fd286f8204ea145d60`，4 个资产已通过无 Token 匿名验证，正式消费 [Run 32027223281](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/32027223281) 为 `success`。
-
-## 6.2.3 历史正式事实
-
-[`6.2.3`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.3) 已于 2026-08-16 发布。其 A/B 分别为 `ea0240e620b57d7275e486199099c648f51de257` 和 `0f26b7647e6c1aadb32eca68b24f6845639a59c2`；annotated tag 解引用到 `09148ce3c651b3dfc35cae3c873baab6d8105950`，4 个资产已通过无 Token 匿名验证，正式消费 [Run 31941599341](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/31941599341) 为 `success`。
-
-## 白标契约
-
-- framework、module 和 Mach-O：`YTIFLYADLib`
-- framework `CFBundleIdentifier`：`com.gameley.www.YouTuiAdSDK`
-- Objective-C 类、协议和类型前缀：`YTIFLY*`
-- 公开方法及 delegate 回调首段前缀：`ytifly_`
-- 伞头：`#import <YTIFLYADLib/YTIFLYADLib.h>`
-- 资源包：`YTAdvSDK.bundle`
-- 运行期日志前缀：`[YTAd]`
-- 普通请求地址：`https://msdk.voiceads.cn/sdk/req`，不提供公开运行时 URL setter
-
-本版不承诺与通用版、YS 版、优酷版或其他定制版在同一 App 中共存。
-
-## 分发产物
-
-正式 `6.3.0` Release 精确包含四个资产：
-
-| 文件 | 内容 | 适用方式 |
+| 能力 | 入口类 | 渲染方式 |
 | --- | --- | --- |
-| `YTIFLYADLib-6.3.0.zip` | `YTIFLYADLib.xcframework`、`YTAdvSDK.bundle`、`LICENSE` | CocoaPods、手动接入 |
-| `YTIFLYADLib.xcframework.zip` | 仅静态 XCFramework | SwiftPM binary target |
-| `checksums.txt` | 两个 zip 的 SHA-256 及 SwiftPM checksum | 完整性校验 |
-| `delivery-manifest.json` | 源码提交、构建、签名、能力与资产身份 | 发布验收 |
+| 开屏 | `YTIFLYSplashAd` | SDK 内置渲染，支持图片和视频 |
+| 插屏 | `YTIFLYInterstitialAd` | SDK 内置渲染，支持半屏/全屏、图片和视频 |
+| Banner | — | 本变体不提供 |
+| 激励视频 | — | 本变体不提供 |
+| 自渲染信息流 | — | 本变体不提供 |
 
-`YTIFLYADLib` 是静态 framework，无需 Embed；最终 App 链接必须包含 `-ObjC`。CocoaPods 清单会传播该参数并复制资源包；SwiftPM 产品会自动投递资源包，但宿主仍需添加 `-ObjC`；手动接入还需把 `YTAdvSDK.bundle` 加入 Copy Bundle Resources。
+## 白标命名和环境要求
 
-## CocoaPods
+- framework、module 和产品名：`YTIFLYADLib`。
+- Objective-C 类和协议前缀：`YTIFLY`。
+- 公开方法和 delegate 回调前缀：`ytifly_`；初始化方法和属性保持系统风格。
+- 入口头：
 
-以下远程方式固定使用已验证的 `6.3.0` tag 和同版本 Release 资产：
+  ```objc
+  #import <YTIFLYADLib/YTIFLYADLib.h>
+  ```
+
+- 资源包：`YTAdvSDK.bundle`。
+- iOS 11.0 及以上，Xcode 15.0 及以上。
+- SDK 是静态 XCFramework，最终 App 必须链接 `-ObjC`，不需要 Embed & Sign。
+- 不建议在同一 App 中同时集成其他白标变体；如确有需求，请先确认符号和产品名不会冲突。
+
+## 安装
+
+### CocoaPods
 
 ```ruby
 source 'https://cdn.cocoapods.org/'
@@ -71,85 +47,191 @@ target 'YourApp' do
 end
 ```
 
-## Swift Package Manager
+```bash
+pod install
+open YourApp.xcworkspace
+```
 
-添加公开仓并选择精确版本 `6.3.0`：
+CocoaPods 会自动投递 `YTAdvSDK.bundle` 并传播 `-ObjC`。
+
+### Swift Package Manager
+
+在 Xcode 中添加：
 
 ```text
 https://github.com/LJMcarryu/YTIFLYADLib_iOS.git
 ```
 
-选择精确版本 `6.3.0` 和产品 `YTIFLYADLib`，并在 App Target 的 `Other Linker Flags` 添加 `-ObjC`。
+选择版本 `6.3.0` 和产品 `YTIFLYADLib`。资源 target 会自动投递 `YTAdvSDK.bundle`；在 App target 的 `Other Linker Flags` 添加：
 
-## 手动接入
-
-1. 下载并解压 `YTIFLYADLib-6.3.0.zip`。
-2. 将 `YTIFLYADLib.xcframework` 加入 App Target，Embed 选择“Do Not Embed”。
-3. 将 `YTAdvSDK.bundle` 加入 Copy Bundle Resources。
-4. 将 `-ObjC` 加入 App Target 的 `Other Linker Flags`。
-5. 在代码中导入 `<YTIFLYADLib/YTIFLYADLib.h>`。
-
-## 全局配置与请求
-
-```objc
-[YTIFLYAdConfig ytifly_setPersonalizedEnabled:YES];
-[YTIFLYAdConfig ytifly_setLogEnabled:NO];
-
-YTIFLYAdRequestConfig *request = [[YTIFLYAdRequestConfig alloc] init];
-request.appName = @"YourApp";
-request.appVersion = @"1.0";
-request.requestTimeout = @5;
+```text
+-ObjC
 ```
 
-`ytifly_setPersonalizedEnabled:` 当前只记录媒体传入的合规状态，不会自动过滤请求字段或改变广告行为。媒体应先完成自身隐私同意流程，再发起广告请求。
+### 手动集成
+
+从 [Release 6.3.0](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0) 下载 `YTIFLYADLib-6.3.0.zip`：
+
+1. 将 `YTIFLYADLib.xcframework` 加入 App target，Embed 选择 **Do Not Embed**。
+2. 将 `YTAdvSDK.bundle` 加入 **Copy Bundle Resources**。
+3. 在 App target 的 `Other Linker Flags` 添加 `-ObjC`。
+4. 导入 `<YTIFLYADLib/YTIFLYADLib.h>`。
+
+## 初始化、隐私和请求配置
+
+```objc
+#import <YTIFLYADLib/YTIFLYADLib.h>
+
+- (BOOL)application:(UIApplication *)application
+    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    [YTIFLYAdConfig ytifly_setPersonalizedEnabled:YES];
+    [YTIFLYAdConfig ytifly_setLogEnabled:NO];
+    return YES;
+}
+```
+
+`ytifly_setPersonalizedEnabled:` 只记录媒体侧个性化状态，不代替 ATT，也不会自动改变请求内容。正式上线建议关闭日志。
+
+iOS 14 及以上如需使用 IDFA，请配置：
+
+```xml
+<key>NSUserTrackingUsageDescription</key>
+<string>用于获取广告标识符 IDFA，以便请求和展示相关广告。</string>
+```
+
+只有 ATT `authorized` 时才读取或传入 IDFA；授权完成后重新读取。宿主仍须在 App Store Connect 隐私标签中申报 SDK 实际数据处理。
+
+两种广告都支持 `YTIFLYAdRequestConfig`：
+
+```objc
+- (YTIFLYAdRequestConfig *)requestConfig {
+    YTIFLYAdRequestConfig *config = [[YTIFLYAdRequestConfig alloc] init];
+    config.requestTimeout = @5;
+    config.appName = NSBundle.mainBundle.infoDictionary[@"CFBundleDisplayName"];
+    config.appVersion = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+    config.settleType = @1;  // 0=固定价格，1=RTB
+    config.bidFloor = @0.01;
+    return config;
+}
+```
+
+常用字段还包括 `requestId`、`userAgent`、`idfa`、`caidList` 和 `deepLinkDisabled`。未设置 `requestId` 时 SDK 自动生成。
 
 ## 开屏广告
 
 ```objc
 @interface SplashViewController () <YTIFLYSplashAdDelegate>
-@property (nonatomic, strong) YTIFLYSplashAd *ad;
+@property (nonatomic, strong) YTIFLYSplashAd *splashAd;
 @end
 
 - (void)loadSplash {
-    YTIFLYSplashAd *ad = [[YTIFLYSplashAd alloc] initWithAdUnitId:@"开屏广告位 ID"];
+    YTIFLYSplashAd *ad = [[YTIFLYSplashAd alloc] initWithAdUnitId:@"YOUR_SPLASH_AD_UNIT_ID"];
     ad.delegate = self;
     ad.currentViewController = self;
-    self.ad = ad;
-    [ad ytifly_loadAd];
+    self.splashAd = ad;
+    [ad ytifly_loadAdWithRequestConfig:[self requestConfig]];
 }
 
 - (void)ytifly_splashAdDidReady:(YTIFLYSplashAd *)ad {
-    if (ad != self.ad || ![ad ytifly_isAdValid]) return;
-    [ad ytifly_showAdFromRootViewController:self];
+    if (ad != self.splashAd || ![ad ytifly_isAdValid]) return;
+    YTIFLYSplashAdConfig *config = [[YTIFLYSplashAdConfig alloc] init];
+    config.traceDuration = 5;
+    config.muteOnStart = YES;
+    [ad ytifly_showAdFromRootViewController:self config:config];
+}
+
+- (void)ytifly_splashAd:(YTIFLYSplashAd *)ad didFailWithError:(YTIFLYAdError *)error {
+    NSLog(@"Splash failed: %d %@", error.errorCode, error.errorDescription);
 }
 ```
+
+常用回调包括 `ytifly_splashAdDidLoad:`、`ytifly_splashAdDidReady:`、`ytifly_splashAdDidShow:`、`ytifly_splashAdDidExpose:`、`ytifly_splashAdDidClick:`、`ytifly_splashAdDidClose:`、`ytifly_splashAdDidSkip:` 和失败回调。视频素材还会触发播放状态回调。开屏挂载到 window，不使用 `presentViewController:`。
 
 ## 插屏广告
 
 ```objc
 @interface InterstitialViewController () <YTIFLYInterstitialAdDelegate>
-@property (nonatomic, strong) YTIFLYInterstitialAd *ad;
+@property (nonatomic, strong) YTIFLYInterstitialAd *interstitialAd;
 @end
 
 - (void)loadInterstitial {
-    YTIFLYInterstitialAd *ad =
-        [[YTIFLYInterstitialAd alloc] initWithAdUnitId:@"插屏广告位 ID"];
+    YTIFLYInterstitialAd *ad = [[YTIFLYInterstitialAd alloc] initWithAdUnitId:@"YOUR_INTERSTITIAL_AD_UNIT_ID"];
     ad.delegate = self;
     ad.currentViewController = self;
-    self.ad = ad;
-    [ad ytifly_loadAd];
+    self.interstitialAd = ad;
+    [ad ytifly_loadAdWithRequestConfig:[self requestConfig]];
 }
 
 - (void)ytifly_interstitialAdDidReady:(YTIFLYInterstitialAd *)ad {
-    if (ad != self.ad || ![ad ytifly_isAdValid]) return;
+    if (ad != self.interstitialAd || ![ad ytifly_isAdValid]) return;
     YTIFLYInterstitialAdConfig *config = [[YTIFLYInterstitialAdConfig alloc] init];
     config.presentationStyle = YTIFLYInterstitialPresentationStyleHalfScreen;
+    config.muteOnStart = YES;
     [ad ytifly_showAdFromRootViewController:self config:config];
+}
+
+- (void)ytifly_interstitialAd:(YTIFLYInterstitialAd *)ad didFailWithError:(YTIFLYAdError *)error {
+    NSLog(@"Interstitial failed: %d %@", error.errorCode, error.errorDescription);
 }
 ```
 
-## 隐私与 ATT
+使用 `YTIFLYInterstitialPresentationStyleHalfScreen` 或 `YTIFLYInterstitialPresentationStyleFullScreen`。展示或关闭后重新创建实例；不要在正在 present/dismiss 时重复展示。
 
-`YTAdvSDK.bundle/PrivacyInfo.xcprivacy` 随资源包投递。宿主仍需根据自身实际数据处理在 App Store Connect 中合并申报隐私标签。iOS 14 及以上如需使用 IDFA，须配置 `NSUserTrackingUsageDescription` 并先取得 ATT 授权；未授权时传入的 IDFA 不会留待授权后复用。CocoaPods 显式链接 `AdSupport`并弱链接 `AppTrackingTransparency`。
+## S2S 和 Header Bidding
 
-本仓发布门禁通过不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
+如平台已开通服务端竞价，生成 SDK token：
+
+```objc
+NSError *error = nil;
+NSString *sdkToken = [YTIFLYAdSDK ytifly_getSdkTokenWithAdUnitId:@"YOUR_AD_UNIT_ID" error:&error];
+```
+
+服务端返回竞胜 `rspToken` 后：
+
+```objc
+[ad ytifly_loadAdWithServerBiddingToken:rspToken];
+```
+
+加载成功后从公开字段读取竞价信息：
+
+```objc
+NSNumber *price = ad.bidInfo.price;
+NSString *dealId = ad.bidInfo.dealId;
+[ad ytifly_sendBidResultWithType:YTIFLYAdBidResultTypeWin reason:@"win"];
+```
+
+Token 生命周期、通知时机和失败重试策略以平台协议为准；未开通时使用普通 `ytifly_loadAd`。
+
+## 错误处理与生命周期
+
+- `ytifly_*AdDidLoad:` 表示响应解析成功，素材可能仍在下载。
+- `ytifly_*AdDidReady:` 表示主素材已就绪，可以展示。
+- 展示前检查 `ytifly_isAdValid`。
+- 页面退出时置空 delegate、调用 `ytifly_destroy` 并释放强引用。
+- 所有失败通过对应 delegate 的 `didFailWithError:` 返回 `YTIFLYAdError`；无填充、网络错误和超时应按业务策略结束或重试，不要无限重试。
+
+## 示例工程
+
+`YTIFLYADLibSimple` 只包含开屏和插屏示例，符合本变体的能力边界：
+
+```bash
+cd YTIFLYADLibSimple
+pod install
+open YTIFLYADLibSimple.xcworkspace
+```
+
+请替换示例广告位 ID，并在获得隐私同意后加载广告。Demo 构建成功表示包能够被正确消费和链接，不代表线上一定有填充。
+
+## 能力边界和常见问题
+
+| 问题 | 处理方式 |
+| --- | --- |
+| 找不到 Banner、Reward 或 NativeFeed 类 | 这些能力不在 YT 6.3.0 产物中，请勿从其他变体复制代码。 |
+| `-ObjC` 缺失 | 在最终 App target 的 `Other Linker Flags` 添加 `-ObjC`。 |
+| 内置广告在 `DidLoad` 展示失败 | 等待 `ytifly_*AdDidReady:` 并检查 `ytifly_isAdValid`。 |
+| IDFA 为空 | 检查 ATT 授权和 `NSUserTrackingUsageDescription`；授权完成后重新读取。 |
+| 资源缺失 | 确认 `YTAdvSDK.bundle` 已由 CocoaPods/SwiftPM 投递，或已在手动集成时加入 Copy Bundle Resources。 |
+
+## 反馈与支持
+
+请在 [Issues](https://github.com/LJMcarryu/YTIFLYADLib_iOS/issues) 提交问题，并附 SDK 版本、iOS/Xcode 版本、接入方式、复现步骤和错误回调。版本变更见 [`CHANGELOG.md`](./CHANGELOG.md)。
