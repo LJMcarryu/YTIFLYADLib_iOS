@@ -20,6 +20,9 @@ ALLOWED_METADATA_FILES = {"Package.swift", "README.md", "CONTEXT.md"}
 CURRENT_RELEASE_VERSION = "6.3.0"
 PENDING_BINARY = "__YTIFLYADLIB_6_3_0_BINARY_SOURCE_COMMIT_PENDING__"
 PENDING_METADATA = "__YTIFLYADLIB_6_3_0_RELEASE_METADATA_COMMIT_PENDING__"
+PUBLIC_RELEASE_STATUS_RE = re.compile(
+    r"<!--\s*ifly-release-status:\s*(\{[^\r\n]*\})\s*-->"
+)
 
 
 class VerificationError(RuntimeError):
@@ -29,6 +32,23 @@ class VerificationError(RuntimeError):
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise VerificationError(message)
+
+
+def has_public_release_status(document: str) -> bool:
+    matches = PUBLIC_RELEASE_STATUS_RE.findall(document)
+    if len(matches) != 1:
+        return False
+    try:
+        marker = json.loads(matches[0])
+    except json.JSONDecodeError:
+        return False
+    return marker == {
+        "schemaVersion": 1,
+        "version": CURRENT_RELEASE_VERSION,
+        "releaseState": "FORMAL",
+        "distribution": "github-release",
+        "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0",
+    }
 
 
 def current_release_section(document: str, label: str) -> str:
@@ -89,9 +109,16 @@ def parse_document(document: str, label: str) -> Tuple[str, str, str]:
 
 
 def validate_documents(paths: Tuple[Path, Path, Path]) -> Tuple[str, str, str]:
-    values = tuple(
-        parse_document(path.read_text(encoding="utf-8"), str(path)) for path in paths
-    )
+    readme = paths[0].read_text(encoding="utf-8")
+    if has_public_release_status(readme):
+        values = tuple(
+            parse_document(path.read_text(encoding="utf-8"), str(path))
+            for path in paths[1:]
+        )
+    else:
+        values = tuple(
+            parse_document(path.read_text(encoding="utf-8"), str(path)) for path in paths
+        )
     require(
         len(set(values)) == 1,
         "README.md、CHANGELOG.md、RELEASING.md 的 releaseState/A/B 必须一致",

@@ -2,6 +2,8 @@
 
 `YTIFLYADLib` 是 YT 媒体定制的 iOS 广告 SDK，仅提供开屏和插屏；两种格式均支持图片与视频素材。本产物不包含 Banner、激励视频或自渲染信息流。
 
+## 6.3.0 发布状态
+
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.0","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0"} -->
 
 当前正式版本：[`6.3.0`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0)。生产项目请固定到具体版本，不要依赖 `main` 分支。
