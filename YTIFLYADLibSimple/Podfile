@@ -6,6 +6,6 @@ target 'YTIFLYADLibSimple' do
   # 优推 YT 媒体定制 SDK（model B 单包静态 framework：仅开屏/插屏，含图片和视频）。
   # 二进制托管在本仓 GitHub Releases，podspec 经 raw URL 直连；静态库随 app 链接（无需 Embed），
   # 资源包 YTAdvSDK.bundle 经 podspec s.resources 自动拷入 app，-ObjC 由 podspec 自动注入。
-  # 固定到已发布的 6.3.0 tag 的 podspec 和同版本 Release 资产。
-  pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.3.0/YTIFLYADLib.podspec'
+  # 固定到已发布的 6.3.1 tag 的 podspec 和同版本 Release 资产。
+  pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.3.1/YTIFLYADLib.podspec'
 end

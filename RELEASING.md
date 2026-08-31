@@ -6,21 +6,21 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 新版本正式发布只能从私有源码仓根目录的 `scripts/release-orchestrator.py` 发起，并按 `prepare → preflight → publish → verify → closeout` 顺序完成。本仓 `.github/scripts/**`、GitHub Actions `workflow_dispatch` 和各类打包命令只是底层门禁或故障诊断入口，不能替代编排器 receipt，也不得从本公开仓手工创建或移动 tag、发布 Release。
 
-## 6.3.0 状态
+## 6.3.1 状态
 
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.0","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0"} -->
+<!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.1","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.1"} -->
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`38eb0715f889fe2d585641891923511c9cc3e43e`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`0e667f9f1a2d615d3f7e15a552f093c903ff1a57`
-- `candidateId`：`1b69dab08ac31e756b707d824b2548c2c2cfd66b343007d00e43efdbee795c44`
+- `binarySourceCommit`（SDK 二进制源码提交）：`b7e46a9f06897924d3d69d4d6a7e43f6237d8579`
+- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b86f5d7dc5e1105194889bc60a5ee9eec40b611f`
+- `candidateId`：`74f506ec2562caac2d0f1f48a404c1c3b69a1a2d29463ce94067b18821d1f1d7`
 
-正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `144d0c649c1a83d8572e4a3a1295ec0430a65b788554fe62cccf6c12631a0aa5`，`YTIFLYADLib-6.3.0.zip` 的 SHA-256 为 `e422b4b7ed238136e90b596e4958bbabf59649dd656e38f394248b7efdb638f6`。
+正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `7adf06f9c3f1d6fe915679322ccb941ba9122edf496c9815db12db3f4e459855`，`YTIFLYADLib-6.3.1.zip` 的 SHA-256 为 `c47eb332cc58c864b49b3a17f594debf80f4259a9b8123b7b437ff1657fe6f1f`。
 
 `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 
-正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 为 `6.2.4/CLOSED`；Candidate 必须由编排器从该关闭态推进到 `6.3.0/FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
+正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 为 `6.2.4/CLOSED`；Candidate 必须由编排器从该关闭态推进到 `6.3.1/FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
 
 本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
 
@@ -30,14 +30,14 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 ```text
 YTIFLYADLib.xcframework.zip
-YTIFLYADLib-6.3.0.zip
+YTIFLYADLib-6.3.1.zip
 checksums.txt
 delivery-manifest.json
 ```
 
 消费工作流同时支持：
 
-- `validation_mode=draft_candidate`：只允许从精确 `release-candidate/6.3.0-<candidateId>` 分支触发，使用专用只读 Token 下载绑定 Release ID 的 Draft 资产；
+- `validation_mode=draft_candidate`：只允许从精确 `release-candidate/6.3.1-<candidateId>` 分支触发，使用专用只读 Token 下载绑定 Release ID 的 Draft 资产；
 - `validation_mode=formal_release`：只接受已公开 annotated tag，不携带 Token 匿名下载四资产。
 
 工作流须校验两个 zip 的同源 XCFramework、资源包、请求地址、双切片、iOS 11.0、非 ad-hoc 签名、framework Bundle ID、公开头/类符号能力边界，并实际构建 CocoaPods Demo 与 SwiftPM 最小消费端。
@@ -49,7 +49,7 @@ delivery-manifest.json
 ```bash
 IFLY_NEW_VERSION_RELEASE=1 \
 IFLY_SDK_CODESIGN_IDENTITY='正式 SDK 签名身份' \
-scripts/package-yt-release.sh --version 6.3.0
+scripts/package-yt-release.sh --version 6.3.1
 ```
 
 底层门禁至少必须证明：
@@ -61,6 +61,6 @@ scripts/package-yt-release.sh --version 6.3.0
 - `YTAdvSDK.bundle/PrivacyInfo.xcprivacy` 存在且与仓库 SwiftPM 资源完全一致；
 - `delivery-manifest.json` 的 `distribution=YT`、`variant=YTSplashInterstitial`、`moduleName=YTIFLYADLib`、`capabilities=[Splash, Interstitial]`、`videoEnabled=true` 绑定同一源码提交。
 
-`6.3.0` 不沿用历史风险接受名单；Apple Review 扫描策略为 `failOnWarning=true`、`strict=true`、`requireManual=true`、`acceptedWarningRuleIds=[]`。本版扫描未执行且不是发布门禁；未扫描不得表述为通过，也不代表最终宿主合规或 Apple 审核通过。
+`6.3.1` 不沿用历史风险接受名单；Apple Review 扫描策略为 `failOnWarning=true`、`strict=true`、`requireManual=true`、`acceptedWarningRuleIds=[]`。本版扫描未执行且不是发布门禁；未扫描不得表述为通过，也不代表最终宿主合规或 Apple 审核通过。
 
 已发布 tag 和 zip 不允许覆盖重打；任何二进制变化都必须发布新版本。

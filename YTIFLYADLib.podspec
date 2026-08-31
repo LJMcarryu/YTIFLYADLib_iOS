@@ -5,11 +5,11 @@
 Pod::Spec.new do |s|
   s.name = 'YTIFLYADLib'
   s.module_name = 'YTIFLYADLib'
-  s.version = '6.3.0'
+  s.version = '6.3.1'
   s.summary = '优推定制 YTIFLYADLib：开屏与插屏，支持图片和视频。'
   s.homepage = 'https://github.com/LJMcarryu/YTIFLYADLib_iOS'
   s.author = { 'IFLY' => '讯飞AI营销' }
-  s.source = { :http => 'https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/download/6.3.0/YTIFLYADLib-6.3.0.zip' }
+  s.source = { :http => 'https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/download/6.3.1/YTIFLYADLib-6.3.1.zip' }
   s.license = { :type => 'MIT', :file => 'LICENSE' }
 
   s.platform = :ios, '11.0'

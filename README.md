@@ -2,11 +2,11 @@
 
 `YTIFLYADLib` 是 YT 媒体定制的 iOS 广告 SDK，仅提供开屏和插屏；两种格式均支持图片与视频素材。本产物不包含 Banner、激励视频或自渲染信息流。
 
-## 6.3.0 发布状态
+## 6.3.1 发布状态
 
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.0","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0"} -->
+<!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.1","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.1"} -->
 
-当前正式版本：[`6.3.0`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0)。生产项目请固定到具体版本，不要依赖 `main` 分支。
+当前正式版本：[`6.3.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.1)。生产项目请固定到具体版本，不要依赖 `main` 分支。
 
 ## 能力矩阵
 
@@ -45,7 +45,7 @@ platform :ios, '11.0'
 target 'YourApp' do
   use_frameworks!
   pod 'YTIFLYADLib',
-      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.3.0/YTIFLYADLib.podspec'
+      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.3.1/YTIFLYADLib.podspec'
 end
 ```
 
@@ -64,7 +64,7 @@ CocoaPods 会自动投递 `YTAdvSDK.bundle` 并传播 `-ObjC`。
 https://github.com/LJMcarryu/YTIFLYADLib_iOS.git
 ```
 
-选择版本 `6.3.0` 和产品 `YTIFLYADLib`。资源 target 会自动投递 `YTAdvSDK.bundle`；在 App target 的 `Other Linker Flags` 添加：
+选择版本 `6.3.1` 和产品 `YTIFLYADLib`。资源 target 会自动投递 `YTAdvSDK.bundle`；在 App target 的 `Other Linker Flags` 添加：
 
 ```text
 -ObjC
@@ -72,7 +72,7 @@ https://github.com/LJMcarryu/YTIFLYADLib_iOS.git
 
 ### 手动集成
 
-从 [Release 6.3.0](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0) 下载 `YTIFLYADLib-6.3.0.zip`：
+从 [Release 6.3.1](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.1) 下载 `YTIFLYADLib-6.3.1.zip`：
 
 1. 将 `YTIFLYADLib.xcframework` 加入 App target，Embed 选择 **Do Not Embed**。
 2. 将 `YTAdvSDK.bundle` 加入 **Copy Bundle Resources**。
@@ -228,7 +228,7 @@ open YTIFLYADLibSimple.xcworkspace
 
 | 问题 | 处理方式 |
 | --- | --- |
-| 找不到 Banner、Reward 或 NativeFeed 类 | 这些能力不在 YT 6.3.0 产物中，请勿从其他变体复制代码。 |
+| 找不到 Banner、Reward 或 NativeFeed 类 | 这些能力不在 YT 6.3.1 产物中，请勿从其他变体复制代码。 |
 | `-ObjC` 缺失 | 在最终 App target 的 `Other Linker Flags` 添加 `-ObjC`。 |
 | 内置广告在 `DidLoad` 展示失败 | 等待 `ytifly_*AdDidReady:` 并检查 `ytifly_isAdValid`。 |
 | IDFA 为空 | 检查 ATT 授权和 `NSUserTrackingUsageDescription`；授权完成后重新读取。 |
