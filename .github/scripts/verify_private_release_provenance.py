@@ -17,9 +17,9 @@ from urllib.request import Request, urlopen
 PRIVATE_SOURCE_REPOSITORY = "LJMcarryu/IFLYADLibDemo"
 USER_AGENT = "YTIFLYADLib-private-provenance-verifier"
 ALLOWED_METADATA_FILES = {"Package.swift", "README.md", "CONTEXT.md"}
-CURRENT_RELEASE_VERSION = "6.3.0"
-PENDING_BINARY = "__YTIFLYADLIB_6_3_0_BINARY_SOURCE_COMMIT_PENDING__"
-PENDING_METADATA = "__YTIFLYADLIB_6_3_0_RELEASE_METADATA_COMMIT_PENDING__"
+CURRENT_RELEASE_VERSION = "6.3.1"
+PENDING_BINARY = "__YTIFLYADLIB_6_3_1_BINARY_SOURCE_COMMIT_PENDING__"
+PENDING_METADATA = "__YTIFLYADLIB_6_3_1_RELEASE_METADATA_COMMIT_PENDING__"
 PUBLIC_RELEASE_STATUS_RE = re.compile(
     r"<!--\s*ifly-release-status:\s*(\{[^\r\n]*\})\s*-->"
 )
@@ -47,7 +47,7 @@ def has_public_release_status(document: str) -> bool:
         "version": CURRENT_RELEASE_VERSION,
         "releaseState": "FORMAL",
         "distribution": "github-release",
-        "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.0",
+        "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.1",
     }
 
 
