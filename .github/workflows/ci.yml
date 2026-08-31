@@ -616,7 +616,7 @@ jobs:
               .group(0)
               .split(".")
           )
-          assert xcode_version <= (26, 2), f"正式 SDK 使用了超上限 Xcode: {xcode_version}"
+          assert xcode_version <= (26, 3), f"正式 SDK 使用了超上限 Xcode: {xcode_version}"
 
           expected_url = os.environ.get("EXPECTED_AD_REQUEST_URL", "").strip()
           assert expected_url, "正式请求地址未配置"
