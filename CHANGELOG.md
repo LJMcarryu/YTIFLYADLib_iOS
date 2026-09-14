@@ -1,14 +1,25 @@
 # 版本记录
 
-## 6.3.5（2026-09-01）
+## 6.3.5（发布准备）
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
+
+- `releaseState`：`FORMAL`
+- `binarySourceCommit`（SDK 二进制源码提交）：`82d8cab58eba588104eee9bc89063952a277af65`
+- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89`
+- `artifactCandidateId`：`17cccada18787f54c2faca204769d245a3ee29adf40f6c85c679896c28f16ba4`
+- `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83`；`YTIFLYADLib-6.3.5.zip` 的 SHA-256：`ab3ed76a2f80ae65c0c8d5b7d6cf0d34ba26380c5b8ea020d305d82445f30631`；`checksums.txt` 的 SHA-256：`a163e9fca74cd9e833f5858cf86f8597ed8b7e77b987258033e1d7ebd7b1d38a`。
+- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
+- 本次按统一版本重建 YT 的 Splash、Interstitial 整变体；公开可用性以同版本 Release 和编排器正式消费验证为准。
+- Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。
+
+## 6.3.1（2026-09-01）
 
 - `releaseState`：`FORMAL`
 - `binarySourceCommit`（SDK 二进制源码提交）：`b7e46a9f06897924d3d69d4d6a7e43f6237d8579`
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b86f5d7dc5e1105194889bc60a5ee9eec40b611f`
 - `candidateId`：`74f506ec2562caac2d0f1f48a404c1c3b69a1a2d29463ce94067b18821d1f1d7`
-- `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`7adf06f9c3f1d6fe915679322ccb941ba9122edf496c9815db12db3f4e459855`；`YTIFLYADLib-6.3.5.zip` 的 SHA-256：`c47eb332cc58c864b49b3a17f594debf80f4259a9b8123b7b437ff1657fe6f1f`；`checksums.txt` 的 SHA-256：`2a42ddd0da3656729e486e90e81bcd39c7a631a4432778e1fd50ae52d41c5c2f`。
+- `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`7adf06f9c3f1d6fe915679322ccb941ba9122edf496c9815db12db3f4e459855`；`YTIFLYADLib-6.3.1.zip` 的 SHA-256：`c47eb332cc58c864b49b3a17f594debf80f4259a9b8123b7b437ff1657fe6f1f`；`checksums.txt` 的 SHA-256：`2a42ddd0da3656729e486e90e81bcd39c7a631a4432778e1fd50ae52d41c5c2f`。
 - `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 - YT 不包含 NativeFeed 和 Banner；本版从统一提交 A 重建，仅同步共享 Core 诊断与安全网，不新增被裁剪格式的公开能力。
 - Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。

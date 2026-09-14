@@ -11,16 +11,16 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`b7e46a9f06897924d3d69d4d6a7e43f6237d8579`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b86f5d7dc5e1105194889bc60a5ee9eec40b611f`
-- `candidateId`：`74f506ec2562caac2d0f1f48a404c1c3b69a1a2d29463ce94067b18821d1f1d7`
+- `binarySourceCommit`（SDK 二进制源码提交）：`82d8cab58eba588104eee9bc89063952a277af65`
+- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89`
+- `artifactCandidateId`：`17cccada18787f54c2faca204769d245a3ee29adf40f6c85c679896c28f16ba4`
 
-正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `7adf06f9c3f1d6fe915679322ccb941ba9122edf496c9815db12db3f4e459855`，`YTIFLYADLib-6.3.5.zip` 的 SHA-256 为 `c47eb332cc58c864b49b3a17f594debf80f4259a9b8123b7b437ff1657fe6f1f`。
+正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83`，`YTIFLYADLib-6.3.5.zip` 的 SHA-256 为 `ab3ed76a2f80ae65c0c8d5b7d6cf0d34ba26380c5b8ea020d305d82445f30631`。
 
 `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 
-正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 为 `6.2.4/CLOSED`；Candidate 必须由编排器从该关闭态推进到 `6.3.5/FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
+正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 为 `6.3.1/CLOSED`；Candidate 必须由编排器从该关闭态推进到 `6.3.5/FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
 
 本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
 
