@@ -3,7 +3,7 @@
   "channel": "yt",
   "repository": "LJMcarryu/YTIFLYADLib_iOS",
   "version": "6.3.5",
-  "phase": "FROZEN",
+  "phase": "CLOSED",
   "binarySourceCommit": "82d8cab58eba588104eee9bc89063952a277af65",
   "releaseMetadataCommit": "b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89",
   "artifactInventory": {
@@ -15,5 +15,16 @@
     "statusAtFreeze": "not-run",
     "evidenceIncluded": false
   },
-  "publication": null
+  "publication": {
+    "releaseId": 388377191,
+    "tagName": "6.3.5",
+    "tagObjectSha": "02e250bd97a6663b45969d0dd5a7c3571a3f833b",
+    "tagCommitSha": "ae56fcca5f845149235e80a3b5c53d875ab0ae3b",
+    "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5",
+    "publishedAt": "2026-09-14T12:39:07Z",
+    "formalConsumerRunId": 34844587952,
+    "formalConsumerRunUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/34844587952",
+    "conclusion": "success",
+    "verifiedAt": "2026-09-14T12:41:47Z"
+  }
 }
