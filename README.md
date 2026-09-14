@@ -6,7 +6,7 @@
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
 
-当前分发目标：[`6.3.5`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5)，正式可用性以同版本 Release 和发布后消费验证为准。生产项目请固定到具体版本，不要依赖 `main` 分支。
+当前正式版本目标：[`6.3.5`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5)，正式可用性以同版本 Release 和发布后消费验证为准。生产项目请固定到具体版本，不要依赖 `main` 分支。
 
 ## 能力矩阵
 

@@ -1,6 +1,6 @@
 # 版本记录
 
-## 6.3.5（发布准备）
+## 6.3.5
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
 
