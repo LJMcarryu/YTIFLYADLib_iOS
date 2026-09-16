@@ -21,6 +21,8 @@
     #define YTIFLYSampleLogInfo(...)  {}
 #endif
 
+// 将下列演示广告位替换为平台分配给当前 App 的对应广告位。
+// NATIVE 宏在本示例中指图片开屏，不表示自渲染信息流。
 #define __SPLASH_NATIVE_AD_UNIT_ID__     @"D65CC066BF3AE066C48F4A101A30005C"
 #define __SPLASH_VIDEO_AD_UNIT_ID__      @"DDC620929747D6DB85FFEB14AB893F4E"
 #define __INTERSTITIAL_AD_UNIT_ID__      @"22E131CFF097584531EAB3281C40769C"

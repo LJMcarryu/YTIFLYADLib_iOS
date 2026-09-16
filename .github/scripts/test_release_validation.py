@@ -443,6 +443,70 @@ class ReleaseMetadataTests(unittest.TestCase):
 
 
 class RequestBoundaryTests(unittest.TestCase):
+    def test_draft_metadata_and_ref_reads_retry_including_final_inventory_check(self) -> None:
+        import io
+        from urllib.error import HTTPError
+        import github_http_retry
+
+        release, contents = draft_release_with_contents()
+        release["target_commitish"] = CANDIDATE_BRANCH
+        opener = FakeDraftOpener(release, contents)
+        original = opener.open
+        failed = set()
+        errors = []
+        def transient_open(request, timeout):
+            if request.get_header("Accept") == "application/vnd.github+json":
+                key = (request.full_url, opener.metadata_calls)
+                if key not in failed:
+                    failed.add(key)
+                    error = HTTPError(request.full_url, 403, "Forbidden", {"Retry-After": "1"}, io.BytesIO(b"{}"))
+                    errors.append(error)
+                    raise error
+            return original(request, timeout)
+        opener.open = transient_open
+        try:
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory)
+                with (
+                    mock.patch.dict(os.environ, {"GITHUB_TOKEN": "fixture-token"}, clear=True),
+                    mock.patch.object(draft, "build_opener", return_value=opener),
+                    mock.patch.object(github_http_retry.time, "sleep") as sleeper,
+                ):
+                    draft.download_release(REPOSITORY, TAG, CANDIDATE_ID, RELEASE_ID,
+                                           CANDIDATE_BRANCH, EXPECTED_COMMIT,
+                                           path / "assets", path / "metadata.json")
+                self.assertEqual(4, len(failed))
+                self.assertEqual(4, sleeper.call_count)
+                self.assertEqual(release, json.loads((path / "metadata.json").read_text()))
+                self.assertNotIn("fixture-token", (path / "metadata.json").read_text())
+        finally:
+            for error in errors:
+                error.close()
+
+    def test_private_comparison_retries_without_changing_token_destination(self) -> None:
+        import io
+        from urllib.error import HTTPError
+        import github_http_retry
+        import verify_private_release_provenance as provenance
+
+        error = HTTPError("https://api.github.com/fixture", 503, "Unavailable", {}, io.BytesIO())
+        response = FakeResponse(b"{}", "https://api.github.com/fixture")
+        try:
+            with (
+                mock.patch.object(provenance, "urlopen", side_effect=[error, response]) as request,
+                mock.patch.object(github_http_retry.time, "sleep") as sleeper,
+            ):
+                self.assertEqual({}, provenance.fetch_comparison("fixture-token", "a" * 40, "b" * 40))
+            self.assertEqual(2, request.call_count)
+            first = request.call_args_list[0].args[0]
+            second = request.call_args_list[1].args[0]
+            self.assertIs(first, second)
+            self.assertTrue(first.full_url.startswith("https://api.github.com/repos/LJMcarryu/IFLYADLibDemo/compare/"))
+            self.assertEqual("Bearer fixture-token", first.get_header("Authorization"))
+            sleeper.assert_called_once_with(1)
+        finally:
+            error.close()
+
     def test_asset_download_retries_timeout_and_reuses_verified_cache(self) -> None:
         payload = b"asset"
         item = {

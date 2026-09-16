@@ -14,6 +14,8 @@ from typing import Any, Dict
 from urllib.parse import quote, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
+from github_http_retry import call_with_retry
+
 from download_release_anonymously import (
     VerificationError,
     download_with_retry,
@@ -258,6 +260,16 @@ def download_and_hash(
     return download_with_retry(asset, destination, open_response, validate_response)
 
 
+
+def read_authenticated_json(opener: Any, request: Request, label: str) -> Dict[str, Any]:
+    def request_once():
+        with opener.open(request, timeout=30) as response:
+            require(response.status == 200, f"{label} HTTP {response.status}")
+            value = json.loads(response.read().decode("utf-8"))
+        require(isinstance(value, dict), f"{label} 响应不是对象")
+        return value
+    return call_with_retry(request_once)
+
 def download_release(
     repository: str,
     tag: str,
@@ -303,9 +315,7 @@ def download_release(
     require(api_url.startswith(expected_api_prefix), "Release API 不是固定同仓 endpoint")
     opener = build_opener(SafeGitHubAssetRedirectHandler())
     request = build_authenticated_request(api_url, "application/vnd.github+json", token)
-    with opener.open(request, timeout=30) as response:
-        require(response.status == 200, f"Draft Release API HTTP {response.status}")
-        release = json.loads(response.read().decode("utf-8"))
+    release = read_authenticated_json(opener, request, "Draft Release API")
 
     def resolve_target(value: Dict[str, Any]) -> str | None:
         if value.get("target_commitish") != target_branch:
@@ -317,9 +327,7 @@ def download_release(
         ref_request = build_authenticated_request(
             ref_url, "application/vnd.github+json", token
         )
-        with opener.open(ref_request, timeout=30) as response:
-            require(response.status == 200, f"候选分支 API HTTP {response.status}")
-            reference = json.loads(response.read().decode("utf-8"))
+        reference = read_authenticated_json(opener, ref_request, "候选分支 API")
         commit = reference.get("object", {}).get("sha")
         require(isinstance(commit, str), "候选分支 API 缺少 object.sha")
         return commit
@@ -347,9 +355,7 @@ def download_release(
     final_request = build_authenticated_request(
         api_url, "application/vnd.github+json", token
     )
-    with opener.open(final_request, timeout=30) as response:
-        require(response.status == 200, f"Draft Release 二次 API HTTP {response.status}")
-        final_release = json.loads(response.read().decode("utf-8"))
+    final_release = read_authenticated_json(opener, final_request, "Draft Release 二次 API")
     validate_draft_release_metadata(
         final_release,
         repository,

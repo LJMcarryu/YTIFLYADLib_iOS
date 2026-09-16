@@ -27,7 +27,7 @@
     self.window.rootViewController = navigationController;
     [self.window makeKeyAndVisible];
 
-    /// 设置是否开启个性化推荐
+    /// 记录个性化状态，示例值需按用户实际选择调整；不代替隐私同意或 ATT 授权。
     [YTIFLYAdConfig ytifly_setPersonalizedEnabled:YES];
     /// 示例工程默认开启日志，媒体正式上线前可关闭。
     [YTIFLYAdConfig ytifly_setLogEnabled:YES];

@@ -4,13 +4,16 @@
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
 
+正式发布于 2026-09-14；本版本的消费结果见 [RELEASING](RELEASING.md)。历史章节只描述各自版本，不替代当前接入契约。
+
 - `releaseState`：`FORMAL`
 - `binarySourceCommit`（SDK 二进制源码提交）：`82d8cab58eba588104eee9bc89063952a277af65`
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89`
 - `artifactCandidateId`：`17cccada18787f54c2faca204769d245a3ee29adf40f6c85c679896c28f16ba4`
 - `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83`；`YTIFLYADLib-6.3.5.zip` 的 SHA-256：`ab3ed76a2f80ae65c0c8d5b7d6cf0d34ba26380c5b8ea020d305d82445f30631`；`checksums.txt` 的 SHA-256：`a163e9fca74cd9e833f5858cf86f8597ed8b7e77b987258033e1d7ebd7b1d38a`。
 - `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
-- 本次按统一版本重建 YT 的 Splash、Interstitial 整变体；公开可用性以同版本 Release 和编排器正式消费验证为准。
+- 同步开屏加载代次、回调保护、全交互回流、视频暂停恢复和终态资源清理；插屏加强视频任务身份与回调重入保护，素材验真在后台执行并复核文件身份。
+- 共享图片下载支持订阅独立取消；加强日志脱敏和 Release 裁剪，Debug 时间线不进入正式包。继续只保留 Splash、Interstitial 和图片 / 视频能力。
 - Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。
 
 ## 6.3.1（2026-09-01）

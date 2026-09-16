@@ -8,7 +8,7 @@
 
 请勿在公开 Issue、PR 或讨论区披露尚未修复的安全问题。
 
-请通过仓库的 **Security → Report a vulnerability** 提交私密漏洞报告，并提供：
+请通过[讯飞安全应急响应中心](https://security.iflysec.com/front/bugForm)的「提交漏洞/情报」入口私密上报；仓库未启用私密漏洞报告时，不要使用公开 Issue 代替。请提供：
 
 - 受影响的 SDK 版本和接入方式；
 - iOS、Xcode、设备环境；

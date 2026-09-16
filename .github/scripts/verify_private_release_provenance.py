@@ -14,6 +14,9 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from github_http_retry import call_with_retry
+
 PRIVATE_SOURCE_REPOSITORY = "LJMcarryu/IFLYADLibDemo"
 USER_AGENT = "YTIFLYADLib-private-provenance-verifier"
 ALLOWED_METADATA_FILES = {"Package.swift", "README.md", "CONTEXT.md"}
@@ -260,9 +263,11 @@ def fetch_comparison(token: str, binary_commit: str, metadata_commit: str) -> Di
         f"/repos/{PRIVATE_SOURCE_REPOSITORY}/compare/" in request.full_url,
         "私有仓令牌只能用于固定 provenance compare API",
     )
-    with urlopen(request, timeout=30) as response:
-        require(response.status == 200, f"私有仓 compare API HTTP {response.status}")
-        return json.loads(response.read().decode("utf-8"))
+    def request_once():
+        with urlopen(request, timeout=30) as response:
+            require(response.status == 200, f"私有仓 compare API HTTP {response.status}")
+            return json.loads(response.read().decode("utf-8"))
+    return call_with_retry(request_once)
 
 
 def urlsplit_host(url: str) -> str:

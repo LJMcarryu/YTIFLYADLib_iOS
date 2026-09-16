@@ -10,6 +10,8 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
 
+`6.3.5` 已于 2026-09-14T12:39:07Z 正式公开，发布后的 [CocoaPods / SwiftPM 消费验证](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/34844587952)为 `success`；本仓 `release-state.json` 为 `6.3.5/CLOSED`。Tag 和发布资产保持不可变。
+
 - `releaseState`：`FORMAL`
 - `binarySourceCommit`（SDK 二进制源码提交）：`82d8cab58eba588104eee9bc89063952a277af65`
 - `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89`
@@ -20,7 +22,7 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 
-正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。当前 `main` 的 `release-state.json` 为 `6.3.1/CLOSED`；Candidate 必须由编排器从该关闭态推进到 `6.3.5/FROZEN`，并包含真实 checksum、两个不同的真实 A/B 提交和精确资产库存。旧版 CLOSED 或非 FROZEN 状态不允许触发 candidate 或正式复验。
+正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。`6.3.5` 的正式 Tag 保留 `FROZEN`，公开 `main` 的 `release-state.json` 已为 `6.3.5/CLOSED`。下一版本 Candidate 由编排器从已关闭基线生成，必须包含该版本真实 checksum、两个不同的真实 A/B 提交和精确资产库存；不能把 `main` 的 CLOSED 提交当作新的 FROZEN 候选。
 
 本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
 

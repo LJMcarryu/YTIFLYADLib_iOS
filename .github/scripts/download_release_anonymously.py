@@ -20,6 +20,10 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from github_http_retry import call_with_retry, retry_delay
+
+
 TOKEN_ENVIRONMENT_VARIABLES = (
     "GH_TOKEN",
     "GITHUB_TOKEN",
@@ -131,11 +135,7 @@ def validate_release_metadata(
 
 
 def _retryable_download_error(error: BaseException) -> bool:
-    if isinstance(error, HTTPError):
-        return error.code in {408, 429} or 500 <= error.code <= 599
-    if isinstance(error, URLError):
-        return isinstance(error.reason, (TimeoutError, socket.timeout, ssl.SSLError, ConnectionError))
-    return isinstance(error, (TimeoutError, socket.timeout, ssl.SSLError, ConnectionError))
+    return retry_delay(error, 1) is not None
 
 
 def _verified_cache(asset: Dict[str, Any], destination: Path) -> str | None:
@@ -187,7 +187,7 @@ def download_with_retry(asset: Dict[str, Any], destination: Path, open_response,
             if (isinstance(error, VerificationError) or not _retryable_download_error(error)
                     or attempt == max_attempts):
                 raise
-            sleeper(min(2 ** (attempt - 1), 8))
+            sleeper(retry_delay(error, attempt))
     raise AssertionError("unreachable")
 
 
@@ -228,9 +228,11 @@ def download_release(
         f"{quote(tag, safe='')}"
     )
     request = build_anonymous_request(api_url, "application/vnd.github+json")
-    with urlopen(request, timeout=30) as response:
-        require(response.status == 200, f"Release API HTTP {response.status}")
-        release = json.loads(response.read().decode("utf-8"))
+    def request_once():
+        with urlopen(request, timeout=30) as response:
+            require(response.status == 200, f"Release API HTTP {response.status}")
+            return json.loads(response.read().decode("utf-8"))
+    release = call_with_retry(request_once)
     assets = validate_release_metadata(release, repository, tag)
 
     destination.mkdir(parents=True, exist_ok=True)
