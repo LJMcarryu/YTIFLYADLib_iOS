@@ -13,6 +13,14 @@
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.3.5","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5"} -->
 
+## 6.3.6 候选联调说明
+
+`6.3.6` 目前是待联调候选，尚未发布。当前公开正式版和生产依赖仍为 [`6.3.5`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5)；已发布的 Tag、Release 和资产不追溯改变。
+
+- 公开 API 方法签名不变。
+- 共享 UIScene 适配将展示、落地页、外跳回流、曝光判断和 UI 生命周期绑定到广告的实际来源 window/Scene。没有来源时，仅在前台应用 Scene 唯一且明确时兜底，不跨 Scene 随机选择；独立落地页始终属于来源 Scene。
+- 开屏的 rootVC 仍须已经入窗。在 Scene 宿主中使用 `customWindow` 时，窗口必须可见、尺寸有限且为正、已经关联 Scene，并与 `rootVC.window` 属于同一 Scene；它可以不是 key window，可以使用较高 `windowLevel`，也可以不设置 rootVC。输入无效时展示失败，修正窗口后可重试。
+
 当前正式版本为 [`6.3.5`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5)。生产项目请固定具体版本；使用 `main` 分支的示例时，其 `Podfile` 仍固定到该 SDK 版本。
 
 | 广告形式 | 公开入口 | 展示方式 |
