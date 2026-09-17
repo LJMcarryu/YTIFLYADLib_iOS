@@ -15,6 +15,8 @@
 
 ## 6.3.6 候选联调说明
 
+<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.3.6","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.3.5"} -->
+
 `6.3.6` 目前是待联调候选，尚未发布。当前公开正式版和生产依赖仍为 [`6.3.5`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.3.5)；已发布的 Tag、Release 和资产不追溯改变。
 
 - 公开 API 方法签名不变。
