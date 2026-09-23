@@ -1,12 +1,12 @@
 # YTIFLYADLibSimple 使用说明
 
-本工程演示 `YTIFLYADLib 6.3.5` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
+本工程演示 `YTIFLYADLib 6.4.0` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
 
 SDK 的安装方式、隐私语义、完整接入示例和错误说明见[根目录接入文档](../README.md)。本示例没有 Banner、激励视频或自渲染信息流入口。
 
-> `6.4.0` 当前是待联调候选，尚未发布；本示例的 `Podfile` 继续固定公开正式版 `6.3.5`，因此直接运行示例时不会获得候选行为。历史 Tag、Release 和资产保持不变。
+> 本示例的 `Podfile` 固定正式版本 `6.4.0`。版本公开状态与消费验证结论以 `release-state.json.publication` 和同版本 GitHub Release 的实际状态为准。
 >
-> 使用后续候选产物联调时，公开 API 方法签名不变。展示、落地页、外跳回流、曝光判断和 UI 生命周期应归属广告的实际来源 window/Scene；无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终属于来源 Scene。开屏 rootVC 仍须入窗；Scene 宿主的 `customWindow` 必须可见、尺寸有限且为正、已关联 Scene，并与 `rootVC.window` 同 Scene，可以是非 key、高 `windowLevel`、无 rootVC。非法输入展示失败，修正后可以重试。
+> `6.4.0` 的公开 API 方法签名不变。展示、落地页、外跳回流、曝光判断和 UI 生命周期应归属广告的实际来源 window/Scene；无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终属于来源 Scene。开屏 rootVC 仍须入窗；Scene 宿主的 `customWindow` 必须可见、尺寸有限且为正、已关联 Scene，并与 `rootVC.window` 同 Scene，可以是非 key、高 `windowLevel`、无 rootVC。非法输入展示失败，修正后可以重试。
 
 ## 运行前准备
 
@@ -28,10 +28,10 @@ open YTIFLYADLibSimple.xcworkspace
 
 已有仓库时，直接进入其中的 `YTIFLYADLibSimple` 目录执行最后两条命令。`pod install` 会生成 workspace；后续都从 `.xcworkspace` 打开。
 
-`Podfile` 已固定到 `6.3.5` 的公开 Podspec：
+`Podfile` 已固定到 `6.4.0` 的公开 Podspec：
 
 ```ruby
-pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.3.5/YTIFLYADLib.podspec'
+pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.4.0/YTIFLYADLib.podspec'
 ```
 
 CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSupport` 及弱链接的 `AppTrackingTransparency`，无需再手动 Embed framework 或添加资源副本。

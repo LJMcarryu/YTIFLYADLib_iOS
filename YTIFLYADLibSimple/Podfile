@@ -1,8 +1,7 @@
 source 'https://cdn.cocoapods.org/'
 platform :ios, '11.0'
 
-# 6.4.0 当前仅为待联调候选，尚未发布；示例继续使用公开正式版 6.3.5。
-# 候选公开 API 方法签名不变。UIScene 展示、落地页、外跳回流、曝光和 UI 生命周期绑定实际来源 window/Scene；
+# 6.4.0 公开 API 方法签名不变。UIScene 展示、落地页、外跳回流、曝光和 UI 生命周期绑定实际来源 window/Scene；
 # 无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终属于来源 Scene。
 # 开屏 rootVC 仍须入窗；Scene 宿主的 customWindow 须可见、尺寸有限且为正、已关联且与 rootVC.window 同 Scene，
 # 可为非 key、高 windowLevel、无 rootVC；非法输入展示失败，修正后可重试。历史 Tag、Release 和资产保持不变。
@@ -12,6 +11,6 @@ target 'YTIFLYADLibSimple' do
   # 优推 YT 媒体定制 SDK：静态 framework，仅开屏/插屏，支持图片和视频。
   # 二进制托管在本仓 GitHub Releases，podspec 经 raw URL 直连；静态库随 app 链接（无需 Embed），
   # 资源包 YTAdvSDK.bundle 经 podspec s.resources 自动拷入 app，-ObjC 由 podspec 自动注入。
-  # 固定到 6.3.5 tag 的 podspec 和同版本 Release 资产。
-  pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.3.5/YTIFLYADLib.podspec'
+  # 固定到 6.4.0 tag 的 podspec 和同版本 Release 资产。
+  pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.4.0/YTIFLYADLib.podspec'
 end
