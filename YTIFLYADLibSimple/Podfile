@@ -1,7 +1,7 @@
 source 'https://cdn.cocoapods.org/'
 platform :ios, '11.0'
 
-# 6.3.6 当前仅为待联调候选，尚未发布；示例继续使用公开正式版 6.3.5。
+# 6.4.0 当前仅为待联调候选，尚未发布；示例继续使用公开正式版 6.3.5。
 # 候选公开 API 方法签名不变。UIScene 展示、落地页、外跳回流、曝光和 UI 生命周期绑定实际来源 window/Scene；
 # 无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终属于来源 Scene。
 # 开屏 rootVC 仍须入窗；Scene 宿主的 customWindow 须可见、尺寸有限且为正、已关联且与 rootVC.window 同 Scene，
