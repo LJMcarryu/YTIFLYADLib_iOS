@@ -6,11 +6,11 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 新版本正式发布只能从私有源码仓根目录的 `scripts/release-orchestrator.py` 发起，并按 `prepare → preflight → publish → verify → closeout` 顺序完成。本仓 `.github/scripts/**`、GitHub Actions `workflow_dispatch` 和各类打包命令只是底层门禁或故障诊断入口，不能替代编排器 receipt，也不得从本公开仓手工创建或移动 tag、发布 Release。
 
-## 6.3.6 候选状态
+## 6.4.0 候选状态
 
-<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.3.6","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.3.5"} -->
+<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.4.0","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.3.5"} -->
 
-`6.3.6` 当前仅为待联调候选，尚未发布，也没有正式 Tag、Release、资产或 checksum。当前公开正式版仍为 `6.3.5`，本仓 `release-state.json` 继续保持 `6.3.5/CLOSED`；只有完成联调和冻结后，才由私有源码仓编排器推进后续状态。已发布的 Tag、Release 和资产不覆盖、不移动。
+`6.4.0` 当前仅为待联调候选，尚未发布，也没有正式 Tag、Release、资产或 checksum。当前公开正式版仍为 `6.3.5`，本仓 `release-state.json` 继续保持 `6.3.5/CLOSED`；只有完成联调和冻结后，才由私有源码仓编排器推进后续状态。已发布的 Tag、Release 和资产不覆盖、不移动。
 
 候选行为将展示、落地页、外跳回流、曝光判断和 UI 生命周期绑定到实际来源 window/Scene；无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终归属来源 Scene。开屏 rootVC 仍须入窗；Scene 宿主的 `customWindow` 必须可见、尺寸有限且为正、已关联 Scene，并与 `rootVC.window` 同 Scene，可以是非 key、高 `windowLevel`、无 rootVC。非法输入展示失败，修正后可重试。公开 API 方法签名不变。
 
