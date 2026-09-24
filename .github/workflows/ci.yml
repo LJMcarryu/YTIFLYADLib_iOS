@@ -275,7 +275,8 @@ jobs:
               os.environ["EVENT_NAME"] == "push"
               and os.environ["REF_TYPE"] != "tag"
               and os.environ["RELEASE_VALIDATION_KIND"] == "none"
-              and os.environ["REPOSITORY_VERSION"] == "6.4.0"
+              and os.environ["REPOSITORY_VERSION"]
+              == os.environ["PREVIOUS_RELEASE_VERSION"]
               and machine["version"] == os.environ["PREVIOUS_RELEASE_VERSION"]
               and machine["phase"] == "CLOSED"
           )

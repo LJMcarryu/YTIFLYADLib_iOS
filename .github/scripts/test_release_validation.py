@@ -1072,11 +1072,14 @@ class WorkflowStructureTests(unittest.TestCase):
             'os.environ["EVENT_NAME"] == "push"',
             'os.environ["REF_TYPE"] != "tag"',
             'os.environ["RELEASE_VALIDATION_KIND"] == "none"',
-            'os.environ["REPOSITORY_VERSION"] == "6.4.0"',
+            'os.environ["REPOSITORY_VERSION"]\n'
+            '    == os.environ["PREVIOUS_RELEASE_VERSION"]',
             'machine["version"] == os.environ["PREVIOUS_RELEASE_VERSION"]',
             'machine["phase"] == "CLOSED"',
         ):
             self.assertIn(marker, state["run"])
+        self.assertEqual(state["env"]["PREVIOUS_RELEASE_VERSION"], PREVIOUS_TAG)
+        self.assertNotIn('REPOSITORY_VERSION"] == "6.4.0"', state["run"])
 
         maintenance = next(
             step for step in steps
