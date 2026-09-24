@@ -14,6 +14,7 @@ from pathlib import Path
 
 VERSION = "6.4.0"
 PREVIOUS_RELEASE_VERSION = "6.3.5"
+PREVIOUS_RELEASE_CHECKSUM = "d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83"
 REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
 PENDING = "__YTIFLYADLIB_6_4_0_SWIFTPM_CHECKSUM_PENDING__"
 HISTORICAL = {
@@ -41,21 +42,29 @@ def read(root: Path, relative: str) -> str:
     return (root / relative).read_text(encoding="utf-8")
 
 
-def verify_release_status(label: str, document: str) -> None:
+def verify_release_status(
+    label: str, document: str, allowed_versions: set[str]
+) -> str:
     markers = RELEASE_STATUS_RE.findall(document)
     require(len(markers) == 1, f"{label} 发布状态标记数量错误: {len(markers)}")
     try:
         marker = json.loads(markers[0])
     except json.JSONDecodeError as error:
         raise ContractError(f"{label} 发布状态标记不是合法 JSON") from error
+    version = marker.get("version")
+    require(
+        isinstance(version, str) and version in allowed_versions,
+        f"{label} 发布状态版本不在允许集合内: {version}",
+    )
     expected = {
         "schemaVersion": 1,
-        "version": VERSION,
+        "version": version,
         "releaseState": "FORMAL",
         "distribution": "github-release",
-        "releaseUrl": f"https://github.com/{REPOSITORY}/releases/tag/{VERSION}",
+        "releaseUrl": f"https://github.com/{REPOSITORY}/releases/tag/{version}",
     }
     require(marker == expected, f"{label} 发布状态标记漂移: {marker}")
+    return version
 
 
 def state(root: Path) -> dict[str, object]:
@@ -82,6 +91,43 @@ def validate_state_version(value: dict[str, object], release_kind: str) -> None:
     )
 
 
+def allowed_distribution_versions(
+    value: dict[str, object], release_kind: str
+) -> set[str]:
+    validate_state_version(value, release_kind)
+    if (
+        release_kind == "none"
+        and value.get("version") == PREVIOUS_RELEASE_VERSION
+        and value.get("phase") == "CLOSED"
+    ):
+        return {PREVIOUS_RELEASE_VERSION, VERSION}
+    return {VERSION}
+
+
+def verify_checksum(checksum: str, distribution_version: str, preparing: bool) -> None:
+    if preparing:
+        require(distribution_version == VERSION, "PREPARING 只允许当前分发版本")
+        require(checksum == PENDING, "PREPARING 必须使用精确 PENDING checksum")
+        return
+    require(
+        re.fullmatch(r"[0-9a-f]{64}", checksum) is not None,
+        "FORMAL checksum 非 64 位小写 SHA-256",
+    )
+    if distribution_version == PREVIOUS_RELEASE_VERSION:
+        require(
+            checksum == PREVIOUS_RELEASE_CHECKSUM,
+            "上一正式版本 checksum 与冻结值不一致",
+        )
+        return
+    require(distribution_version == VERSION, "非法分发版本")
+    require(
+        checksum != "0" * 64
+        and checksum != PREVIOUS_RELEASE_CHECKSUM
+        and checksum not in HISTORICAL,
+        "FORMAL checksum 为零或沿用历史值",
+    )
+
+
 def one(pattern: str, text: str, label: str) -> str:
     values = re.findall(pattern, text, re.M)
     require(len(values) == 1, f"{label} 声明数量错误: {values}")
@@ -93,42 +139,37 @@ def verify_machine(
 ) -> None:
     require(release_kind in {"none", "draft", "formal"}, "非法验证类型")
     machine = state(root)
-    validate_state_version(machine, release_kind)
+    allowed_versions = allowed_distribution_versions(machine, release_kind)
     package = read(root, "Package.swift")
     podspec = read(root, "YTIFLYADLib.podspec")
     podfile = read(root, "YTIFLYADLibSimple/Podfile")
     podspec_json = json.loads(podspec_json_path.read_text(encoding="utf-8"))
     version = one(r"s\.version\s*=\s*['\"]([^'\"]+)", podspec, "podspec version")
-    require(version == VERSION, f"podspec 版本错误: {version}")
+    require(version in allowed_versions, f"podspec 版本错误: {version}")
+    require(podspec_json.get("version") == version, "podspec JSON 版本漂移")
     package_url = one(r'url:\s*"([^"]*YTIFLYADLib\.xcframework\.zip)"',
                       package, "SwiftPM URL")
     pod_url = one(r"s\.source\s*=\s*\{\s*:http\s*=>\s*['\"]([^'\"]+)",
                   podspec, "podspec URL")
     require(
         package_url == f"https://github.com/{REPOSITORY}/releases/download/"
-        f"{VERSION}/YTIFLYADLib.xcframework.zip",
+        f"{version}/YTIFLYADLib.xcframework.zip",
         "SwiftPM URL 版本或仓库错误",
     )
     require(
         pod_url == f"https://github.com/{REPOSITORY}/releases/download/"
-        f"{VERSION}/YTIFLYADLib-{VERSION}.zip",
+        f"{version}/YTIFLYADLib-{version}.zip",
         "podspec URL 版本或仓库错误",
     )
     demo_url = one(r":podspec\s*=>\s*'([^']+)'", podfile, "Demo podspec URL")
     require(
         demo_url == f"https://raw.githubusercontent.com/{REPOSITORY}/"
-        f"{VERSION}/YTIFLYADLib.podspec",
+        f"{version}/YTIFLYADLib.podspec",
         "Demo podspec URL 版本错误",
     )
     checksum = one(r'checksum:\s*"([^"]+)"', package, "SwiftPM checksum")
     preparing = machine.get("phase") == "PREPARING"
-    if preparing:
-        require(checksum == PENDING, "PREPARING 必须使用精确 PENDING checksum")
-    else:
-        require(re.fullmatch(r"[0-9a-f]{64}", checksum) is not None,
-                "FORMAL checksum 非 64 位小写 SHA-256")
-        require(checksum != "0" * 64 and checksum not in HISTORICAL,
-                "FORMAL checksum 为零或沿用历史值")
+    verify_checksum(checksum, version, preparing)
     if release_kind in {"draft", "formal"}:
         require(not preparing, f"{release_kind} 禁止 PREPARING")
     for marker in (
@@ -173,7 +214,7 @@ def verify_machine(
 
 def verify_docs(root: Path, _release_kind: str) -> None:
     machine = state(root)
-    validate_state_version(machine, _release_kind)
+    allowed_versions = allowed_distribution_versions(machine, _release_kind)
     documents = {
         name: read(root, name)
         for name in ("README.md", "CHANGELOG.md", "RELEASING.md")
@@ -184,9 +225,13 @@ def verify_docs(root: Path, _release_kind: str) -> None:
         require("PENDING" in documents["RELEASING.md"], "RELEASING 缺少 PENDING 展示")
         require("尚未发布" in demo, "Demo 缺少待发布展示")
     else:
-        for label, document in documents.items():
-            verify_release_status(label, document)
-        require(VERSION in demo, "Demo 缺少当前版本展示")
+        versions = {
+            verify_release_status(label, document, allowed_versions)
+            for label, document in documents.items()
+        }
+        require(len(versions) == 1, f"发布文档版本不一致: {sorted(versions)}")
+        distribution_version = versions.pop()
+        require(distribution_version in demo, "Demo 缺少当前分发版本展示")
 
 
 def main() -> int:
