@@ -257,6 +257,12 @@ jobs:
             python3 - --scope docs --release-kind "${RELEASE_VALIDATION_KIND}"
       - name: 读取 A/B 发布状态
         id: provenance-state
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          RELEASE_VALIDATION_KIND: ${{ steps.release-selection.outputs.kind }}
+          REPOSITORY_VERSION: ${{ steps.repository-version.outputs.version }}
+          PREVIOUS_RELEASE_VERSION: '6.3.5'
         run: |
           python3 - <<'PY'
           import os
@@ -265,8 +271,19 @@ jobs:
 
           machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
           state = "PENDING" if machine["phase"] == "PREPARING" else "FORMAL"
+          bootstrap_previous_closed = (
+              os.environ["EVENT_NAME"] == "push"
+              and os.environ["REF_TYPE"] != "tag"
+              and os.environ["RELEASE_VALIDATION_KIND"] == "none"
+              and os.environ["REPOSITORY_VERSION"] == "6.4.0"
+              and machine["version"] == os.environ["PREVIOUS_RELEASE_VERSION"]
+              and machine["phase"] == "CLOSED"
+          )
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
               output.write(f"state={state}\n")
+              output.write(
+                  f"bootstrap_previous_closed={str(bootstrap_previous_closed).lower()}\n"
+              )
           PY
 
       - name: 普通分支校验 PENDING A/B provenance
@@ -351,13 +368,25 @@ jobs:
           test -z "$(git status --porcelain)"
 
       - name: 校验 FORMAL A/B provenance 文档
-        if: steps.provenance-state.outputs.state == 'FORMAL' && github.ref_type != 'tag' && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))) && !(github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate')
+        if: steps.provenance-state.outputs.state == 'FORMAL' && steps.provenance-state.outputs.bootstrap_previous_closed != 'true' && github.ref_type != 'tag' && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))) && !(github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate')
         run: |
           python3 .github/scripts/verify_private_release_provenance.py \
             --readme README.md \
             --changelog CHANGELOG.md \
             --releasing RELEASING.md \
             --skip-compare
+
+      - name: 上一正式版 CLOSED bootstrap 保留历史 provenance
+        if: steps.provenance-state.outputs.bootstrap_previous_closed == 'true'
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
+          assert machine["version"] == "6.3.5"
+          assert machine["phase"] == "CLOSED"
+          PY
 
       - name: Candidate/正式 tag/Release 校验 FORMAL A/B provenance（私有仓 compare）
         if: steps.provenance-state.outputs.state == 'FORMAL' && (github.ref_type == 'tag' || github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'draft_candidate' || inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))

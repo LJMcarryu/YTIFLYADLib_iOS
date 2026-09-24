@@ -1065,6 +1065,39 @@ class WorkflowStructureTests(unittest.TestCase):
         )
         self.assertNotIn("if", asset_provenance)
 
+    def test_previous_closed_bootstrap_skip_is_limited_to_normal_push(self) -> None:
+        steps = self.workflow["jobs"]["verify-repository"]["steps"]
+        state = next(step for step in steps if step.get("id") == "provenance-state")
+        for marker in (
+            'os.environ["EVENT_NAME"] == "push"',
+            'os.environ["REF_TYPE"] != "tag"',
+            'os.environ["RELEASE_VALIDATION_KIND"] == "none"',
+            'os.environ["REPOSITORY_VERSION"] == "6.4.0"',
+            'machine["version"] == os.environ["PREVIOUS_RELEASE_VERSION"]',
+            'machine["phase"] == "CLOSED"',
+        ):
+            self.assertIn(marker, state["run"])
+
+        maintenance = next(
+            step for step in steps
+            if step.get("name") == "校验 FORMAL A/B provenance 文档"
+        )
+        self.assertIn("bootstrap_previous_closed != 'true'", maintenance["if"])
+        bootstrap = next(
+            step for step in steps
+            if step.get("name") == "上一正式版 CLOSED bootstrap 保留历史 provenance"
+        )
+        self.assertEqual(
+            bootstrap["if"],
+            "steps.provenance-state.outputs.bootstrap_previous_closed == 'true'",
+        )
+        compare = next(
+            step for step in steps
+            if step.get("name")
+            == "Candidate/正式 tag/Release 校验 FORMAL A/B provenance（私有仓 compare）"
+        )
+        self.assertNotIn("bootstrap_previous_closed", compare["if"])
+
     def test_machine_and_document_contracts_are_blocking(self) -> None:
         jobs = self.workflow["jobs"]
         repository_steps = jobs["verify-repository"]["steps"]
