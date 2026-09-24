@@ -1173,20 +1173,19 @@ class WorkflowStructureTests(unittest.TestCase):
             },
             "publication": None,
         })
-        original_read = repository_contract.read
-
-        def frozen_read(root: Path, relative: str) -> str:
-            if relative == "release-state.json":
-                return json.dumps(frozen)
-            return original_read(root, relative)
-
-        with mock.patch.object(repository_contract, "read", side_effect=frozen_read):
-            repository_contract.verify_machine(ROOT, "draft", self.podspec_json)
-            repository_contract.verify_machine(ROOT, "formal", self.podspec_json)
-            repository_contract.verify_docs(ROOT, "draft")
+        for release_kind in ("draft", "formal"):
+            repository_contract.validate_state_version(frozen, release_kind)
+            self.assertEqual(
+                repository_contract.allowed_distribution_versions(
+                    frozen, release_kind
+                ),
+                {TAG},
+            )
 
         wrong_phase = copy.deepcopy(frozen)
         wrong_phase["phase"] = "VERIFIED"
+
+        original_read = repository_contract.read
 
         def wrong_phase_read(root: Path, relative: str) -> str:
             if relative == "release-state.json":
