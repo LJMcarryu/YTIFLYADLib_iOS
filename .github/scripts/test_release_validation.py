@@ -1086,6 +1086,11 @@ class WorkflowStructureTests(unittest.TestCase):
             if step.get("name") == "校验 FORMAL A/B provenance 文档"
         )
         self.assertIn("bootstrap_previous_closed != 'true'", maintenance["if"])
+        self.assertIn(
+            "!(github.event_name == 'workflow_dispatch' && "
+            "inputs.control_plane_canary)",
+            maintenance["if"],
+        )
         bootstrap = next(
             step for step in steps
             if step.get("name") == "上一正式版 CLOSED bootstrap 保留历史 provenance"

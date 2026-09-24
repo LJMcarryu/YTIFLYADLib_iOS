@@ -369,7 +369,7 @@ jobs:
           test -z "$(git status --porcelain)"
 
       - name: 校验 FORMAL A/B provenance 文档
-        if: steps.provenance-state.outputs.state == 'FORMAL' && steps.provenance-state.outputs.bootstrap_previous_closed != 'true' && github.ref_type != 'tag' && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))) && !(github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate')
+        if: steps.provenance-state.outputs.state == 'FORMAL' && steps.provenance-state.outputs.bootstrap_previous_closed != 'true' && github.ref_type != 'tag' && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && inputs.control_plane_canary) && !(github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))) && !(github.event_name == 'workflow_dispatch' && inputs.validation_mode == 'draft_candidate')
         run: |
           python3 .github/scripts/verify_private_release_provenance.py \
             --readme README.md \
