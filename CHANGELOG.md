@@ -1,14 +1,19 @@
 # 版本记录
 
-## 6.4.1 候选状态
+## 6.4.1 - 发布工程优化
 
-<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.4.1","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.4.0"} -->
+<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.1","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1"} -->
 
-`6.4.1` 当前为发布前候选，尚未发布。当前公开正式版仍为 `6.4.0`；历史 Tag、Release 和资产保持不可变。本候选文案不包含构建或 SDK 测试结论。
+`6.4.1` 的正式分发资料由同版本冻结库存生成；公开时间和消费验证结论以 `release-state.json.publication` 与 [Release 6.4.1](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1) 的实际状态为准。
+
+### 变更
+
+- 优化正式发布编排：统一入口与 profile 路由不减少正式五阶段门禁。
+- 发布脚本回归支持绑定完整身份的不可变回执与确定性分片；SDK、Demo、Scene 和变体测试仍按候选独立执行。
+- 增加匿名逐资产恢复、正式 consumer 受控恢复、摘要日志和运行耗时证据。
+- SDK 与 UI 行为继承 `6.4.0`，没有新增公开 API。
 
 ## 6.4.0 冻结与发布记录
-
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.0","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.0"} -->
 
 `6.4.0` 的正式分发资料与签名资产已经冻结；公开时间和消费结论以 `release-state.json.publication` 与 [Release 6.4.0](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.0) 的实际状态为准。
 
