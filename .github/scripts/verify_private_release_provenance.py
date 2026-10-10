@@ -20,9 +20,13 @@ from github_http_retry import call_with_retry
 PRIVATE_SOURCE_REPOSITORY = "LJMcarryu/IFLYADLibDemo"
 USER_AGENT = "YTIFLYADLib-private-provenance-verifier"
 ALLOWED_METADATA_FILES = {"Package.swift", "README.md", "CONTEXT.md"}
-CURRENT_RELEASE_VERSION = "6.4.0"
-PENDING_BINARY = "__YTIFLYADLIB_6_4_0_BINARY_SOURCE_COMMIT_PENDING__"
-PENDING_METADATA = "__YTIFLYADLIB_6_4_0_RELEASE_METADATA_COMMIT_PENDING__"
+RELEASE_CONTROL = json.loads(
+    Path(__file__).resolve().with_name("release-control.json").read_text(encoding="utf-8")
+)
+CURRENT_RELEASE_VERSION = RELEASE_CONTROL["targetVersion"]
+VERSION_TOKEN = CURRENT_RELEASE_VERSION.replace(".", "_")
+PENDING_BINARY = f"__YTIFLYADLIB_{VERSION_TOKEN}_BINARY_SOURCE_COMMIT_PENDING__"
+PENDING_METADATA = f"__YTIFLYADLIB_{VERSION_TOKEN}_RELEASE_METADATA_COMMIT_PENDING__"
 PUBLIC_RELEASE_STATUS_RE = re.compile(
     r"<!--\s*ifly-release-status:\s*(\{[^\r\n]*\})\s*-->"
 )
@@ -50,7 +54,10 @@ def has_public_release_status(document: str) -> bool:
         "version": CURRENT_RELEASE_VERSION,
         "releaseState": "FORMAL",
         "distribution": "github-release",
-        "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.0",
+        "releaseUrl": (
+            "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/"
+            f"{CURRENT_RELEASE_VERSION}"
+        ),
     }
 
 

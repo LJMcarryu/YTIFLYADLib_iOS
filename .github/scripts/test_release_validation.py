@@ -23,10 +23,15 @@ import verify_repository_contract as repository_contract
 
 ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
-TAG = json.loads(
+RELEASE_CONTROL = json.loads(
     (ROOT / ".github/scripts/release-control.json").read_text(encoding="utf-8")
-)["targetVersion"]
-PREVIOUS_TAG = "6.3.5"
+)
+TAG = RELEASE_CONTROL["targetVersion"]
+PREVIOUS_TAG = RELEASE_CONTROL["closedVersion"]
+CONTROL_VERSIONS = {
+    "closed_version": PREVIOUS_TAG,
+    "target_version": TAG,
+}
 CANDIDATE_ID = "a" * 64
 DISPATCH_NONCE = "d" * 32
 RELEASE_ID = 99
@@ -1082,13 +1087,15 @@ class WorkflowStructureTests(unittest.TestCase):
             'os.environ["EVENT_NAME"] == "push"',
             'os.environ["REF_TYPE"] != "tag"',
             'os.environ["RELEASE_VALIDATION_KIND"] == "none"',
+            'Path(".github/scripts/release-control.json")',
+            'previous_release_version = control["closedVersion"]',
             'os.environ["REPOSITORY_VERSION"]\n'
-            '    == os.environ["PREVIOUS_RELEASE_VERSION"]',
-            'machine["version"] == os.environ["PREVIOUS_RELEASE_VERSION"]',
+            "    == previous_release_version",
+            'machine["version"] == previous_release_version',
             'machine["phase"] == "CLOSED"',
         ):
             self.assertIn(marker, state["run"])
-        self.assertEqual(state["env"]["PREVIOUS_RELEASE_VERSION"], PREVIOUS_TAG)
+        self.assertNotIn("PREVIOUS_RELEASE_VERSION", state["env"])
         self.assertNotIn('REPOSITORY_VERSION"] == "6.4.0"', state["run"])
 
         maintenance = next(
@@ -1109,6 +1116,11 @@ class WorkflowStructureTests(unittest.TestCase):
             bootstrap["if"],
             "steps.provenance-state.outputs.bootstrap_previous_closed == 'true'",
         )
+        self.assertIn(
+            'machine["version"] == control["closedVersion"]',
+            bootstrap["run"],
+        )
+        self.assertNotIn('machine["version"] == "6.3.5"', bootstrap["run"])
         compare = next(
             step for step in steps
             if step.get("name")
@@ -1174,7 +1186,7 @@ class WorkflowStructureTests(unittest.TestCase):
     def test_main_accepts_previous_closed_and_current_frozen(self) -> None:
         self.assertEqual(
             repository_contract.allowed_distribution_versions(
-                self.previous_closed_state, "none"
+                self.previous_closed_state, "none", **CONTROL_VERSIONS
             ),
             {PREVIOUS_TAG, TAG},
         )
@@ -1184,13 +1196,23 @@ class WorkflowStructureTests(unittest.TestCase):
             with self.assertRaises(repository_contract.ContractError):
                 repository_contract.verify_machine(ROOT, "draft", self.podspec_json)
 
-        repository_contract.validate_state_version(self.current_closed_state, "none")
         repository_contract.validate_state_version(
-            {"version": TAG, "phase": "FROZEN"}, "none"
+            self.current_closed_state, "none", **CONTROL_VERSIONS
         )
         self.assertEqual(
             repository_contract.allowed_distribution_versions(
-                {"version": TAG, "phase": "FROZEN"}, "draft"
+                self.current_closed_state, "none", **CONTROL_VERSIONS
+            ),
+            {TAG},
+        )
+        repository_contract.validate_state_version(
+            {"version": TAG, "phase": "FROZEN"}, "none", **CONTROL_VERSIONS
+        )
+        self.assertEqual(
+            repository_contract.allowed_distribution_versions(
+                {"version": TAG, "phase": "FROZEN"},
+                "draft",
+                **CONTROL_VERSIONS,
             ),
             {TAG},
         )
@@ -1199,7 +1221,7 @@ class WorkflowStructureTests(unittest.TestCase):
                 repository_contract.ContractError
             ):
                 repository_contract.validate_state_version(
-                    {"version": TAG, "phase": phase}, "none"
+                    {"version": TAG, "phase": phase}, "none", **CONTROL_VERSIONS
                 )
         for state in (
             {"version": PREVIOUS_TAG, "phase": "CLOSED"},
@@ -1209,7 +1231,9 @@ class WorkflowStructureTests(unittest.TestCase):
                 with self.subTest(
                     state=state, release_kind=release_kind
                 ), self.assertRaises(repository_contract.ContractError):
-                    repository_contract.validate_state_version(state, release_kind)
+                    repository_contract.validate_state_version(
+                        state, release_kind, **CONTROL_VERSIONS
+                    )
 
         current = json.loads((ROOT / "release-state.json").read_text(encoding="utf-8"))
         frozen = copy.deepcopy(current)
@@ -1225,10 +1249,12 @@ class WorkflowStructureTests(unittest.TestCase):
             "publication": None,
         })
         for release_kind in ("draft", "formal"):
-            repository_contract.validate_state_version(frozen, release_kind)
+            repository_contract.validate_state_version(
+                frozen, release_kind, **CONTROL_VERSIONS
+            )
             self.assertEqual(
                 repository_contract.allowed_distribution_versions(
-                    frozen, release_kind
+                    frozen, release_kind, **CONTROL_VERSIONS
                 ),
                 {TAG},
             )
@@ -1254,13 +1280,18 @@ class WorkflowStructureTests(unittest.TestCase):
                     with self.subTest(version=version, phase=phase, kind=release_kind):
                         with self.assertRaises(repository_contract.ContractError):
                             repository_contract.validate_state_version(
-                                {"version": version, "phase": phase}, release_kind
+                                {"version": version, "phase": phase},
+                                release_kind,
+                                **CONTROL_VERSIONS,
                             )
 
     def test_previous_release_checksum_is_rejected(self) -> None:
         with self.assertRaisesRegex(repository_contract.ContractError, "沿用历史值"):
             repository_contract.verify_checksum(
-                repository_contract.PREVIOUS_RELEASE_CHECKSUM, TAG, False
+                repository_contract.PREVIOUS_RELEASE_CHECKSUM,
+                TAG,
+                False,
+                **CONTROL_VERSIONS,
             )
 
     def test_docs_drift_is_isolated_but_checksum_drift_fails_machine_scope(self) -> None:

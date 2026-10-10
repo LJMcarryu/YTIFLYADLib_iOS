@@ -288,7 +288,6 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
           RELEASE_VALIDATION_KIND: ${{ steps.release-selection.outputs.kind }}
           REPOSITORY_VERSION: ${{ steps.repository-version.outputs.version }}
-          PREVIOUS_RELEASE_VERSION: '6.3.5'
         run: |
           python3 - <<'PY'
           import os
@@ -296,14 +295,18 @@ jobs:
           from pathlib import Path
 
           machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
+          control = json.loads(
+              Path(".github/scripts/release-control.json").read_text(encoding="utf-8")
+          )
+          previous_release_version = control["closedVersion"]
           state = "PENDING" if machine["phase"] == "PREPARING" else "FORMAL"
           bootstrap_previous_closed = (
               os.environ["EVENT_NAME"] == "push"
               and os.environ["REF_TYPE"] != "tag"
               and os.environ["RELEASE_VALIDATION_KIND"] == "none"
               and os.environ["REPOSITORY_VERSION"]
-              == os.environ["PREVIOUS_RELEASE_VERSION"]
-              and machine["version"] == os.environ["PREVIOUS_RELEASE_VERSION"]
+              == previous_release_version
+              and machine["version"] == previous_release_version
               and machine["phase"] == "CLOSED"
           )
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
@@ -411,7 +414,10 @@ jobs:
           from pathlib import Path
 
           machine = json.loads(Path("release-state.json").read_text(encoding="utf-8"))
-          assert machine["version"] == "6.3.5"
+          control = json.loads(
+              Path(".github/scripts/release-control.json").read_text(encoding="utf-8")
+          )
+          assert machine["version"] == control["closedVersion"]
           assert machine["phase"] == "CLOSED"
           PY
 
