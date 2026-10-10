@@ -23,7 +23,9 @@ import verify_repository_contract as repository_contract
 
 ROOT = Path(__file__).resolve().parents[2]
 REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
-TAG = "6.4.0"
+TAG = json.loads(
+    (ROOT / ".github/scripts/release-control.json").read_text(encoding="utf-8")
+)["targetVersion"]
 PREVIOUS_TAG = "6.3.5"
 CANDIDATE_ID = "a" * 64
 DISPATCH_NONCE = "d" * 32
@@ -831,7 +833,7 @@ class WorkflowStructureTests(unittest.TestCase):
                 if step.get("uses") == "actions/checkout@v4":
                     self.assertIs(step["with"]["persist-credentials"], False)
 
-    def test_legacy_release_tag_dispatch_remains_formal_and_anonymous(self) -> None:
+    def test_formal_dispatch_requires_exact_release_id(self) -> None:
         jobs = self.workflow["jobs"]
         repository_steps = jobs["verify-repository"]["steps"]
         guard = next(
@@ -845,7 +847,8 @@ class WorkflowStructureTests(unittest.TestCase):
             for step in repository_steps
             if step.get("uses") == "actions/checkout@v4"
         )
-        self.assertIn("兼容改造前只填写 release_tag", guard["run"])
+        self.assertIn("FORMAL_RELEASE_ID", guard["run"])
+        self.assertIn('^ [1-9][0-9]*$'.replace(" ", ""), guard["run"].replace(" ", ""))
         self.assertIn("'repository' && -n \"${FORMAL_TAG}\"", selection["run"])
         self.assertIn("inputs.validation_mode == 'repository'", checkout["with"]["ref"])
         self.assertIn("inputs.release_tag != ''", checkout["with"]["ref"])
@@ -858,7 +861,11 @@ class WorkflowStructureTests(unittest.TestCase):
         ]
         self.assertEqual(len(formal_downloads), 3)
         for step in formal_downloads:
-            self.assertNotIn("GITHUB_TOKEN", step.get("env", {}))
+            self.assertEqual(
+                step["env"]["GITHUB_TOKEN"],
+                "${{ github.event_name == 'workflow_dispatch' && github.token || '' }}",
+            )
+            self.assertIn("--release-id", step["run"])
             self.assertIn("inputs.validation_mode == 'repository'", step["if"])
             self.assertIn("inputs.release_tag != ''", step["if"])
 
@@ -868,12 +875,15 @@ class WorkflowStructureTests(unittest.TestCase):
             for step in job["steps"]:
                 if "GITHUB_TOKEN" in step.get("env", {}):
                     token_steps.append((job_id, step))
-        self.assertEqual(len(token_steps), 4)
-        self.assertNotIn(
-            "${{ github.token }}",
-            (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"),
-        )
+        self.assertEqual(len(token_steps), 7)
         for job_id, step in token_steps:
+            if "正式 Release" in step.get("name", "") or step.get("name") == "匿名下载本次 Release 的精确资产集":
+                self.assertEqual(
+                    step["env"]["GITHUB_TOKEN"],
+                    "${{ github.event_name == 'workflow_dispatch' && github.token || '' }}",
+                )
+                self.assertIn("--release-id", step["run"])
+                continue
             if job_id == "control-plane-canary":
                 self.assertIn("Canary", step["name"])
                 self.assertNotIn("if", step)
@@ -1368,11 +1378,14 @@ class WorkflowStructureTests(unittest.TestCase):
         self.assertEqual(len(formal_downloads), 3)
         for step in formal_downloads:
             self.assertIn("release_kind == 'formal'", step["if"])
-            self.assertNotIn("GITHUB_TOKEN", step.get("env", {}))
+            self.assertEqual(
+                step["env"]["GITHUB_TOKEN"],
+                "${{ github.event_name == 'workflow_dispatch' && github.token || '' }}",
+            )
             self.assertIn("download_release_anonymously.py", step["run"])
+            self.assertIn("--release-id", step["run"])
             for token_name in (
                 "GH_TOKEN",
-                "GITHUB_TOKEN",
                 "GITHUB_AUTH_TOKEN",
                 "IFLY_PRIVATE_SOURCE_TOKEN",
             ):

@@ -21,7 +21,8 @@ from urllib.error import HTTPError, URLError
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from github_http_retry import call_with_retry, retry_delay
+from github_http_retry import call_with_retry, failure_classification, retry_delay
+from release_metadata_control import formal_release_metadata
 
 
 TOKEN_ENVIRONMENT_VARIABLES = (
@@ -209,30 +210,28 @@ def download_and_hash(asset: Dict[str, Any], destination: Path) -> str:
 
 
 def download_release(
-    repository: str, tag: str, destination: Path, metadata_output: Path
+    repository: str,
+    tag: str,
+    destination: Path,
+    metadata_output: Path,
+    *,
+    release_id: str,
+    event_name: str,
+    event_path: Path | None,
 ) -> None:
-    leaked_tokens = [
-        name for name in TOKEN_ENVIRONMENT_VARIABLES if os.environ.get(name)
-    ]
-    require(
-        not leaked_tokens,
-        f"匿名 Release 下载环境不得包含凭据变量: {leaked_tokens}",
-    )
     require(re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository) is not None,
             f"非法 GitHub repository: {repository!r}")
     require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", tag) is not None,
             f"非法 Release tag: {tag!r}")
 
-    api_url = (
-        f"https://api.github.com/repos/{repository}/releases/tags/"
-        f"{quote(tag, safe='')}"
+    release = formal_release_metadata(
+        repository=repository,
+        tag=tag,
+        release_id=release_id,
+        event_name=event_name,
+        event_path=event_path,
+        token=os.environ.get("GITHUB_TOKEN", "").strip(),
     )
-    request = build_anonymous_request(api_url, "application/vnd.github+json")
-    def request_once():
-        with urlopen(request, timeout=30) as response:
-            require(response.status == 200, f"Release API HTTP {response.status}")
-            return json.loads(response.read().decode("utf-8"))
-    release = call_with_retry(request_once)
     assets = validate_release_metadata(release, repository, tag)
 
     destination.mkdir(parents=True, exist_ok=True)
@@ -261,13 +260,22 @@ def main() -> int:
     parser.add_argument("--tag", required=True)
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--metadata-output", type=Path, required=True)
+    parser.add_argument("--release-id", required=True)
+    parser.add_argument("--event-name", required=True)
+    parser.add_argument("--event-path", type=Path)
     args = parser.parse_args()
     try:
         download_release(
-            args.repository, args.tag, args.destination, args.metadata_output
+            args.repository,
+            args.tag,
+            args.destination,
+            args.metadata_output,
+            release_id=args.release_id,
+            event_name=args.event_name,
+            event_path=args.event_path,
         )
     except (OSError, ValueError, json.JSONDecodeError, VerificationError) as error:
-        print(f"ERROR: {error}", file=sys.stderr)
+        print(f"ERROR[{failure_classification(error)}]: {error}", file=sys.stderr)
         return 1
     return 0
 

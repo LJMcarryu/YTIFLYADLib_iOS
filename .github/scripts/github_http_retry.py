@@ -76,6 +76,22 @@ def retry_delay(error: BaseException, attempt: int, *, now=None):
     return None
 
 
+def failure_classification(error: BaseException) -> str:
+    """给发布汇总提供稳定失败分类，不包含 URL、响应正文或凭据。"""
+    if isinstance(error, RateLimitWaitRequired):
+        return "rate_limited"
+    if isinstance(error, HTTPError):
+        if error.code in (403, 429) and rate_limit_wait(error) is not None:
+            return "rate_limited"
+        if error.code == 408 or 500 <= error.code <= 599:
+            return "network_timeout"
+        return "deterministic"
+    reason = error.reason if isinstance(error, URLError) else error
+    if isinstance(reason, (TimeoutError, socket.timeout, ssl.SSLError, ConnectionError)):
+        return "network_timeout"
+    return "deterministic"
+
+
 def call_with_retry(operation, *, max_attempts=5, sleeper=None):
     if not isinstance(max_attempts, int) or isinstance(max_attempts, bool) or max_attempts < 1:
         raise ValueError("max_attempts 必须为正整数")

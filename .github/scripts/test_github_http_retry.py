@@ -87,6 +87,22 @@ class GitHubRetryTests(unittest.TestCase):
             RETRY.call_with_retry(operation)
         self.assertEqual(operation.call_count, 1)
 
+    def test_failure_classification_is_stable_and_non_sensitive(self):
+        self.assertEqual(
+            RETRY.failure_classification(
+                http_error(429, {"Retry-After": "1"}, "rate limited")
+            ),
+            "rate_limited",
+        )
+        self.assertEqual(
+            RETRY.failure_classification(TimeoutError("TLS timeout")),
+            "network_timeout",
+        )
+        self.assertEqual(
+            RETRY.failure_classification(ValueError("SHA-256 mismatch")),
+            "deterministic",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

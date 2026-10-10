@@ -55,7 +55,12 @@ concurrency:
         default: ''
         type: string
       release_tag:
-        description: 正式匿名复验 tag；兼容默认 repository 模式下仅填写本字段的旧调用
+        description: 正式复验 tag；必须同时提供 formal_release_id
+        required: false
+        default: ''
+        type: string
+      formal_release_id:
+        description: 正式复验的精确 Release ID；控制 API 认证查询，资产仍匿名下载
         required: false
         default: ''
         type: string
@@ -101,6 +106,7 @@ jobs:
           CANDIDATE_RELEASE_ID: ${{ inputs.candidate_release_id }}
           DISPATCH_NONCE: ${{ inputs.dispatch_nonce }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          FORMAL_RELEASE_ID: ${{ inputs.formal_release_id }}
           CONTROL_PLANE_CANARY: ${{ inputs.control_plane_canary }}
           CANARY_TAG: ${{ inputs.canary_tag }}
           CANARY_RELEASE_ID: ${{ inputs.canary_release_id }}
@@ -113,6 +119,7 @@ jobs:
               test -z "${CANDIDATE_RELEASE_ID}"
               if [[ "${CONTROL_PLANE_CANARY}" == 'true' ]]; then
                 test -z "${RELEASE_TAG}"
+                test -z "${FORMAL_RELEASE_ID}"
                 [[ "${CANARY_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
                 [[ "${CANARY_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
                 [[ "${CANARY_CANDIDATE_ID}" =~ ^[0-9a-f]{64}$ ]]
@@ -125,8 +132,9 @@ jobs:
                 test -z "${CANARY_RELEASE_ID}"
                 test -z "${CANARY_CANDIDATE_ID}"
                 test -z "${DISPATCH_NONCE}"
-                # 兼容改造前只填写 release_tag 的手动正式复验调用。
-                if [[ -n "${RELEASE_TAG}" ]]; then
+                if [[ -n "${RELEASE_TAG}" || -n "${FORMAL_RELEASE_ID}" ]]; then
+                  test -n "${RELEASE_TAG}"
+                  [[ "${FORMAL_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
                   [[ "${RELEASE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
                 fi
               fi
@@ -144,6 +152,7 @@ jobs:
               test "${GITHUB_REF}" = "refs/heads/${candidate_branch}"
               test "${GITHUB_REF_NAME}" = "${candidate_branch}"
               test -z "${RELEASE_TAG}"
+              test -z "${FORMAL_RELEASE_ID}"
               ;;
             formal_release)
               test "${CONTROL_PLANE_CANARY}" != 'true'
@@ -155,6 +164,7 @@ jobs:
               test -z "${CANDIDATE_RELEASE_ID}"
               test -z "${DISPATCH_NONCE}"
               [[ "${RELEASE_TAG}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+              [[ "${FORMAL_RELEASE_ID}" =~ ^[1-9][0-9]*$ ]]
               ;;
             *)
               echo "未知 validation_mode: ${VALIDATION_MODE}" >&2
@@ -188,6 +198,22 @@ jobs:
           python3 scripts/release_state.py release-state.json \
             --expected-channel yt \
             --expected-repository "$GITHUB_REPOSITORY"
+
+      - name: 校验版本控制状态拓扑
+        env:
+          VALIDATION_MODE: ${{ github.event_name == 'release' && 'formal_release' || github.ref_type == 'tag' && 'formal_release' || inputs.validation_mode || 'repository' }}
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          from pathlib import Path
+          sys.path.insert(0, ".github/scripts")
+          from release_metadata_control import read_release_control
+          read_release_control(Path(".github/scripts/release-control.json"),
+              repository="${{ github.repository }}", channel="yt",
+              release_state_path=Path("release-state.json"),
+              validation_mode=os.environ["VALIDATION_MODE"])
+          print("release-control 版本契约校验通过")
+          PY
 
       - name: 读取仓库当前版本
         id: repository-version
@@ -228,7 +254,7 @@ jobs:
             kind='formal'
             tag="${FORMAL_TAG}"
           elif [[ "${EVENT_NAME}" == 'workflow_dispatch' && "${VALIDATION_MODE}" == 'repository' && -n "${FORMAL_TAG}" ]]; then
-            # 兼容旧 workflow_dispatch：只填写 release_tag 即执行正式匿名复验。
+            # repository 模式仅在 release_tag/formal_release_id 已成对校验后推导正式复验。
             kind='formal'
             tag="${FORMAL_TAG}"
           fi
@@ -400,7 +426,8 @@ jobs:
       - name: Tag push 校验 annotated tag 与 checkout 绑定
         if: github.ref_type == 'tag'
         run: |
-          test "${GITHUB_REF_NAME}" = '6.4.0'
+          target_version="$(python3 -c 'import json; print(json.load(open(".github/scripts/release-control.json"))["targetVersion"])')"
+          test "${GITHUB_REF_NAME}" = "${target_version}"
           test -z "$(git status --porcelain)"
           test "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}")" = 'tag'
           test "$(git rev-parse HEAD)" = "$(git rev-parse "${GITHUB_REF_NAME}^{commit}")"
@@ -541,7 +568,8 @@ jobs:
       - name: 校验 CI Xcode 与 Release 身份
         run: |
           xcodebuild -version
-          test "${RELEASE_TAG}" = '6.4.0'
+          target_version="$(python3 -c 'import json; print(json.load(open(".github/scripts/release-control.json"))["targetVersion"])')"
+          test "${RELEASE_TAG}" = "${target_version}"
           test "${RELEASE_TAG}" = "${REPOSITORY_VERSION}"
           test -z "$(git status --porcelain)"
           if [[ "${RELEASE_KIND}" == 'draft' ]]; then
@@ -581,17 +609,22 @@ jobs:
 
       - name: 匿名下载本次 Release 的精确资产集
         if: needs.verify-repository.outputs.release_kind == 'formal' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != '')) && env.RELEASE_KIND == 'formal'))
+        env:
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && github.token || '' }}
+          FORMAL_RELEASE_ID: ${{ github.event.release.id || inputs.formal_release_id }}
         run: |
           test ! -e "${ASSET_ROOT}"
           test ! -e "${RELEASE_METADATA}"
           env \
             -u GH_TOKEN \
-            -u GITHUB_TOKEN \
             -u GITHUB_AUTH_TOKEN \
             -u IFLY_PRIVATE_SOURCE_TOKEN \
             python3 .github/scripts/download_release_anonymously.py \
               --repository "${GITHUB_REPOSITORY}" \
               --tag "${RELEASE_TAG}" \
+              --release-id "${FORMAL_RELEASE_ID}" \
+              --event-name "${{ github.event_name }}" \
+              --event-path "${GITHUB_EVENT_PATH}" \
               --destination "${ASSET_ROOT}" \
               --metadata-output "${RELEASE_METADATA}"
 
@@ -949,15 +982,20 @@ jobs:
 
       - name: 匿名下载 CocoaPods 使用的正式 Release 资产
         if: needs.verify-release-assets.outputs.release_kind == 'formal' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
+        env:
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && github.token || '' }}
+          FORMAL_RELEASE_ID: ${{ github.event.release.id || inputs.formal_release_id }}
         run: |
           env \
             -u GH_TOKEN \
-            -u GITHUB_TOKEN \
             -u GITHUB_AUTH_TOKEN \
             -u IFLY_PRIVATE_SOURCE_TOKEN \
             python3 .github/scripts/download_release_anonymously.py \
               --repository "${GITHUB_REPOSITORY}" \
               --tag "${RELEASE_TAG}" \
+              --release-id "${FORMAL_RELEASE_ID}" \
+              --event-name "${{ github.event_name }}" \
+              --event-path "${GITHUB_EVENT_PATH}" \
               --destination "${ASSET_ROOT}" \
               --metadata-output "${RELEASE_METADATA}"
 
@@ -1109,15 +1147,20 @@ jobs:
 
       - name: 匿名下载 SwiftPM 使用的正式 Release 资产
         if: needs.verify-release-assets.outputs.release_kind == 'formal' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.validation_mode == 'formal_release' || (inputs.validation_mode == 'repository' && inputs.release_tag != ''))))
+        env:
+          GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && github.token || '' }}
+          FORMAL_RELEASE_ID: ${{ github.event.release.id || inputs.formal_release_id }}
         run: |
           env \
             -u GH_TOKEN \
-            -u GITHUB_TOKEN \
             -u GITHUB_AUTH_TOKEN \
             -u IFLY_PRIVATE_SOURCE_TOKEN \
             python3 .github/scripts/download_release_anonymously.py \
               --repository "${GITHUB_REPOSITORY}" \
               --tag "${RELEASE_TAG}" \
+              --release-id "${FORMAL_RELEASE_ID}" \
+              --event-name "${{ github.event_name }}" \
+              --event-path "${GITHUB_EVENT_PATH}" \
               --destination "${ASSET_ROOT}" \
               --metadata-output "${RELEASE_METADATA}"
 
