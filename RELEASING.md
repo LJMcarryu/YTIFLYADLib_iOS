@@ -2,6 +2,12 @@
 
 YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生成。本仓不接收 SDK 私有源码或手工替换的二进制。
 
+## 6.4.2 候选状态（尚未发布）
+
+<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.4.2","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.4.1"} -->
+
+`6.4.2` 为候选版本，尚未发布。当前公开正式版和生产依赖仍为 [`6.4.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)；历史 Tag、Release 和资产保持不可变。
+
 ## 正式发布唯一入口
 
 新版本正式发布只能从私有源码仓根目录的 `scripts/release-orchestrator.py` 发起，并按 `prepare → preflight → publish → verify → closeout` 顺序完成。本仓 `.github/scripts/**`、GitHub Actions `workflow_dispatch` 和各类打包命令只是底层门禁或故障诊断入口，不能替代编排器 receipt，也不得从本公开仓手工创建或移动 tag、发布 Release。

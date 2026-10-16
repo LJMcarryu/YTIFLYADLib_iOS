@@ -1,5 +1,11 @@
 # 版本记录
 
+## [6.4.2] - 候选版本（尚未发布）
+
+<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.4.2","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.4.1"} -->
+
+`6.4.2` 为候选版本，尚未发布。当前公开正式版和生产依赖仍为 [`6.4.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)；历史 Tag、Release 和资产保持不可变。
+
 ## 6.4.1 - 发布工程优化
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.1","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1"} -->

@@ -1,5 +1,7 @@
 # YTIFLYADLibSimple 使用说明
 
+> `6.4.2` 为候选版本，尚未发布。当前公开正式版和生产依赖仍为 [`6.4.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)；历史 Tag、Release 和资产保持不可变。
+
 本工程演示 `YTIFLYADLib 6.4.1` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
 
 SDK 的安装方式、隐私语义、完整接入示例和错误说明见[根目录接入文档](../README.md)。本示例没有 Banner、激励视频或自渲染信息流入口。

@@ -1,3 +1,6 @@
+# 6.4.2 为候选版本，尚未发布。当前公开正式版和生产依赖仍为 6.4.1。
+# 历史 Tag、Release 和资产保持不可变。
+
 source 'https://cdn.cocoapods.org/'
 platform :ios, '11.0'
 
