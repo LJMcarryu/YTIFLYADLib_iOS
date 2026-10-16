@@ -28,6 +28,7 @@ RELEASE_CONTROL = json.loads(
 )
 TAG = RELEASE_CONTROL["targetVersion"]
 PREVIOUS_TAG = RELEASE_CONTROL["closedVersion"]
+HISTORICAL_DOCUMENT_TAG = PREVIOUS_TAG if PREVIOUS_TAG != TAG else "0.0.0"
 CONTROL_VERSIONS = {
     "closed_version": PREVIOUS_TAG,
     "target_version": TAG,
@@ -701,7 +702,7 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
     def test_current_640_section_ignores_historical_635(self) -> None:
         document = provenance_section(
             f"{TAG} 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
-        ) + provenance_section(PREVIOUS_TAG, "FORMAL", "a" * 40, "b" * 40)
+        ) + provenance_section(HISTORICAL_DOCUMENT_TAG, "FORMAL", "a" * 40, "b" * 40)
         self.assertEqual(
             private_provenance.parse_document(document, "测试文档"),
             ("FORMAL", BINARY_COMMIT, METADATA_COMMIT),
@@ -713,7 +714,7 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
             "PENDING",
             private_provenance.PENDING_BINARY,
             private_provenance.PENDING_METADATA,
-        ) + provenance_section(PREVIOUS_TAG, "FORMAL", "a" * 40, "b" * 40)
+        ) + provenance_section(HISTORICAL_DOCUMENT_TAG, "FORMAL", "a" * 40, "b" * 40)
         self.assertEqual(
             private_provenance.parse_document(document, "测试文档"),
             (
@@ -727,7 +728,7 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
         current = provenance_section(
             f"{TAG} 发布状态", "FORMAL", BINARY_COMMIT, METADATA_COMMIT
         )
-        historical = provenance_section(PREVIOUS_TAG, "FORMAL", "a" * 40, "b" * 40)
+        historical = provenance_section(HISTORICAL_DOCUMENT_TAG, "FORMAL", "a" * 40, "b" * 40)
         for document in (current + current, historical):
             with self.subTest(document=document):
                 with self.assertRaises(private_provenance.VerificationError):
@@ -745,6 +746,53 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
         )
         with self.assertRaises(private_provenance.VerificationError):
             private_provenance.parse_document(duplicate, "测试文档")
+
+
+class ReleaseChecksumContractTests(unittest.TestCase):
+    def test_known_closed_versions_require_their_exact_frozen_checksum(self) -> None:
+        for version, checksum in repository_contract.CLOSED_RELEASE_CHECKSUMS.items():
+            with self.subTest(version=version):
+                repository_contract.verify_checksum(
+                    checksum, version, False,
+                    closed_version=version, target_version="6.4.2",
+                )
+                for other_version, other in repository_contract.CLOSED_RELEASE_CHECKSUMS.items():
+                    if other_version != version:
+                        with self.subTest(other_version=other_version), self.assertRaisesRegex(
+                            repository_contract.ContractError, "冻结值不一致"
+                        ):
+                            repository_contract.verify_checksum(
+                                other, version, False,
+                                closed_version=version, target_version="6.4.2",
+                            )
+
+    def test_unknown_closed_version_fails_even_with_a_known_checksum(self) -> None:
+        for checksum in repository_contract.CLOSED_RELEASE_CHECKSUMS.values():
+            with self.subTest(checksum=checksum), self.assertRaisesRegex(
+                repository_contract.ContractError, "缺少固定 checksum"
+            ):
+                repository_contract.verify_checksum(
+                    checksum, "0.0.0", False,
+                    closed_version="0.0.0", target_version="6.4.2",
+                )
+
+    def test_target_rejects_every_frozen_historical_and_zero_checksum(self) -> None:
+        rejected = (
+            set(repository_contract.CLOSED_RELEASE_CHECKSUMS.values())
+            | repository_contract.HISTORICAL | {"0" * 64}
+        )
+        for checksum in rejected:
+            with self.subTest(checksum=checksum), self.assertRaisesRegex(
+                repository_contract.ContractError, "沿用历史值"
+            ):
+                repository_contract.verify_checksum(
+                    checksum, "6.4.2", False,
+                    closed_version="6.4.1", target_version="6.4.2",
+                )
+        repository_contract.verify_checksum(
+            "f" * 64, "6.4.2", False,
+            closed_version="6.4.1", target_version="6.4.2",
+        )
 
 
 class WorkflowStructureTests(unittest.TestCase):
@@ -1289,9 +1337,10 @@ class WorkflowStructureTests(unittest.TestCase):
         with self.assertRaisesRegex(repository_contract.ContractError, "沿用历史值"):
             repository_contract.verify_checksum(
                 repository_contract.PREVIOUS_RELEASE_CHECKSUM,
-                TAG,
+                "6.4.2",
                 False,
-                **CONTROL_VERSIONS,
+                closed_version="6.4.1",
+                target_version="6.4.2",
             )
 
     def test_docs_drift_is_isolated_but_checksum_drift_fails_machine_scope(self) -> None:

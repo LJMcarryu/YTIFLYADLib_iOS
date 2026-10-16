@@ -15,6 +15,10 @@ sys.path.insert(0, str(Path.cwd() / ".github/scripts"))
 from release_metadata_control import ReleaseControlError, validate_release_control
 
 PREVIOUS_RELEASE_CHECKSUM = "12fb5f73e348f887d6f937185f4262c11168139c3768669ab77e18fa9ce4efa2"
+CLOSED_RELEASE_CHECKSUMS = {
+    "6.4.0": PREVIOUS_RELEASE_CHECKSUM,
+    "6.4.1": "eece112d6843e5d42d1f21414e41da2e95577a70cc71b4fd4d403ffc9d7b5df3",
+}
 REPOSITORY = "LJMcarryu/YTIFLYADLib_iOS"
 HISTORICAL = {
     "d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83",
@@ -152,6 +156,8 @@ def verify_checksum(
     closed_version: str,
     target_version: str,
 ) -> None:
+    require(closed_version in CLOSED_RELEASE_CHECKSUMS,
+            "上一正式版本缺少固定 checksum")
     if preparing:
         require(distribution_version == target_version, "PREPARING 只允许当前分发版本")
         require(
@@ -165,14 +171,14 @@ def verify_checksum(
     )
     if distribution_version == closed_version:
         require(
-            checksum == PREVIOUS_RELEASE_CHECKSUM,
+            checksum == CLOSED_RELEASE_CHECKSUMS[closed_version],
             "上一正式版本 checksum 与冻结值不一致",
         )
         return
     require(distribution_version == target_version, "非法分发版本")
     require(
         checksum != "0" * 64
-        and checksum != PREVIOUS_RELEASE_CHECKSUM
+        and checksum not in CLOSED_RELEASE_CHECKSUMS.values()
         and checksum not in HISTORICAL,
         "FORMAL checksum 为零或沿用历史值",
     )
