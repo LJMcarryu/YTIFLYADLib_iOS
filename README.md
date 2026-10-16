@@ -2,11 +2,11 @@
 
 `YTIFLYADLib` 是优推（YT）媒体定制的 iOS 广告 SDK，提供开屏和插屏，两种格式均支持图片与视频素材。本仓库提供安装入口、接入说明和可运行的 Objective-C 示例。
 
-## 6.4.2 候选状态（尚未发布）
+## 6.4.2 冻结与发布记录
 
-<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.4.2","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.4.1"} -->
+<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.2","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2"} -->
 
-`6.4.2` 为候选版本，尚未发布。当前公开正式版和生产依赖仍为 [`6.4.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)；历史 Tag、Release 和资产保持不可变。
+`6.4.2` 的正式分发资料以同版本真实冻结 manifest 为准。当前正式版本：[`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。历史 Tag、Release 和资产保持不可变。
 
 ## 从哪里开始
 
@@ -17,7 +17,7 @@
 
 ## 6.4.1 冻结与发布记录
 
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.1","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1"} -->
+> 以下为 `6.4.1` 历史记录；其中“当前”“本版”均只指该历史版本。
 
 `6.4.1` 的正式分发资料由同版本冻结库存生成。当前正式版本：[`6.4.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。
 
@@ -35,7 +35,7 @@
 - 共享 UIScene 适配将展示、落地页、外跳回流、曝光判断和 UI 生命周期绑定到广告的实际来源 window/Scene。没有来源时，仅在前台应用 Scene 唯一且明确时兜底，不跨 Scene 随机选择；独立落地页始终属于来源 Scene。
 - 开屏的 rootVC 仍须已经入窗。在 Scene 宿主中使用 `customWindow` 时，窗口必须可见、尺寸有限且为正、已经关联 Scene，并与 `rootVC.window` 属于同一 Scene；它可以不是 key window，可以使用较高 `windowLevel`，也可以不设置 rootVC。输入无效时展示失败，修正窗口后可重试。
 
-当前正式版本为 [`6.4.1`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)。生产项目请固定具体版本；使用 `main` 分支的示例时，其 `Podfile` 固定到该 SDK 版本。
+当前正式版本为 [`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)。生产项目请固定具体版本；使用 `main` 分支的示例时，其 `Podfile` 固定到该 SDK 版本。
 
 | 广告形式 | 公开入口 | 展示方式 |
 | --- | --- | --- |
@@ -78,7 +78,7 @@ platform :ios, '11.0'
 target 'YourApp' do
   use_frameworks!
   pod 'YTIFLYADLib',
-      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.4.1/YTIFLYADLib.podspec'
+      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.4.2/YTIFLYADLib.podspec'
 end
 ```
 
@@ -99,7 +99,7 @@ CocoaPods 会处理 `YTAdvSDK.bundle`、`-ObjC`、`AdSupport` 和弱链接的 `A
    https://github.com/LJMcarryu/YTIFLYADLib_iOS.git
    ```
 
-2. 依赖规则选择 **Exact Version**，版本填写 `6.4.1`。
+2. 依赖规则选择 **Exact Version**，版本填写 `6.4.2`。
 3. 将产品 `YTIFLYADLib` 加入实际使用 SDK 的 App target。
 4. 在 App target 的 **Build Settings → Other Linker Flags** 中保留 `$(inherited)`，添加 `-ObjC`。
 
@@ -107,7 +107,7 @@ CocoaPods 会处理 `YTAdvSDK.bundle`、`-ObjC`、`AdSupport` 和弱链接的 `A
 
 ### 手动集成
 
-从 [Release 6.4.1](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1) 下载本版本完整包；精确文件名以该 Release 的真实资产清单为准。解压后：
+从 [Release 6.4.2](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2) 下载本版本完整包；精确文件名以该 Release 的真实资产清单为准。解压后：
 
 1. 将 `YTIFLYADLib.xcframework` 加入 App target 的 **Frameworks, Libraries, and Embedded Content**，选择 **Do Not Embed**。
 2. 将 `YTAdvSDK.bundle` 加入 App target 的 **Copy Bundle Resources**，保留包目录名称和内容。
