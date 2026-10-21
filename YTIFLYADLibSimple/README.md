@@ -1,14 +1,8 @@
 # YTIFLYADLibSimple 使用说明
 
-> `6.4.2` 的正式分发资料以同版本真实冻结 manifest 为准。当前正式版本：[`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。历史 Tag、Release 和资产保持不可变。
-
 本工程演示 `YTIFLYADLib 6.4.2` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
 
-SDK 的安装方式、隐私语义、完整接入示例和错误说明见[根目录接入文档](../README.md)。本示例没有 Banner、激励视频或自渲染信息流入口。
-
-> 本示例的 `Podfile` 固定正式版本 `6.4.2`。版本公开状态与消费验证结论以 `release-state.json.publication` 和同版本 GitHub Release 的实际状态为准。
->
-> `6.4.2` 继承 `6.4.0` 的公开 API 与 UI 行为，没有新增公开 API。展示、落地页、外跳回流、曝光判断和 UI 生命周期应归属广告的实际来源 window/Scene；无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终属于来源 Scene。开屏 rootVC 仍须入窗；Scene 宿主的 `customWindow` 必须可见、尺寸有限且为正、已关联 Scene，并与 `rootVC.window` 同 Scene，可以是非 key、高 `windowLevel`、无 rootVC。非法输入展示失败，修正后可以重试。
+SDK 的安装和格式入口见[仓库 README](../README.md)，详细 API 与错误说明见[接入指南](../docs/接入指南/生命周期与排错.md)。本示例没有 Banner、激励视频或自渲染信息流入口。
 
 ## 运行前准备
 
@@ -72,7 +66,7 @@ CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSuppor
 1. 选择 `YTIFLYADLibSimple` scheme。
 2. 模拟器运行：选择本机已安装的 iPhone 模拟器，执行 **Product → Run**。
 3. 真机运行：在 App target 的 **Signing & Capabilities** 中选择自己的 Team，设置可签名且与媒体配置一致的 Bundle Identifier，再选择设备运行。
-4. 首页确认实际 SDK 版本为 `6.4.2`，进入开屏或插屏页面。
+4. 首页确认实际 SDK 版本与本示例 `Podfile` 固定版本 `6.4.2` 一致，进入开屏或插屏页面。
 
 仅检查模拟器构建时，可在本目录执行：
 
@@ -161,4 +155,4 @@ xcodebuild build \
 | IDFA 为空或 ATT 未弹出 | 查看系统授权状态；已选择过时不重复弹窗，拒绝时不传 IDFA；用真机验证 |
 | 点击或播放表现与模拟器不同 | 使用已配置的真机与广告位验证网络、外部 App、音频和系统权限 |
 
-更多错误码及处理方式见[根目录常见问题](../README.md#常见问题)。反馈问题时附 SDK/iOS/Xcode 版本、安装方式、广告形式、复现步骤和脱敏后的错误日志。
+更多错误码及处理方式见[常见问题](../docs/接入指南/生命周期与排错.md#常见问题)。反馈问题时附 SDK/iOS/Xcode 版本、安装方式、广告形式、复现步骤和脱敏后的错误日志。
