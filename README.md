@@ -1,17 +1,11 @@
 # YTIFLYADLib iOS SDK
 
-## 6.4.4 候选
-
-<!-- ifly-release-candidate: {"schemaVersion":1,"version":"6.4.4","releaseState":"CANDIDATE","publicationState":"UNPUBLISHED","repository":"LJMcarryu/YTIFLYADLib_iOS","currentFormalVersion":"6.4.2"} -->
-
-`6.4.4` 为候选，尚未发布；当前公开正式版和生产依赖保持 `6.4.2`。历史 Tag、Release 和资产保持不可变。
-
 
 本仓库提供面向 iOS 应用的优推（YT）定制广告 SDK，包含开屏和插屏，以及安装说明和 Objective-C 示例。
 
-当前正式版本：[`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)。生产项目请固定具体版本。
+当前正式版本：[`6.4.4`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4)。生产项目请固定具体版本。
 
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.2","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2"} -->
+<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.4","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4"} -->
 
 [运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持](#隐私许可与支持)
 
@@ -61,7 +55,7 @@ platform :ios, '11.0'
 target 'YourApp' do
   use_frameworks!
   pod 'YTIFLYADLib',
-      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.4.2/YTIFLYADLib.podspec'
+      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.4.4/YTIFLYADLib.podspec'
 end
 ```
 
