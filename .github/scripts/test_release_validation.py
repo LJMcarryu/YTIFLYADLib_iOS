@@ -749,6 +749,28 @@ class PrivateProvenanceDocumentTests(unittest.TestCase):
 
 
 class ReleaseChecksumContractTests(unittest.TestCase):
+    def test_closed_6_4_2_accepts_only_its_tag_and_frozen_asset_checksum(self) -> None:
+        checksum = "8320fe76aab7801a75009686d945ceeb1390915145daae4e57dc2d61ecd48902"
+        self.assertEqual(checksum, repository_contract.CLOSED_RELEASE_CHECKSUMS["6.4.2"])
+        repository_contract.verify_checksum(
+            checksum, "6.4.2", False,
+            closed_version="6.4.2", target_version="6.4.4",
+        )
+        rejected = (
+            repository_contract.HISTORICAL
+            | {value for version, value in repository_contract.CLOSED_RELEASE_CHECKSUMS.items()
+               if version != "6.4.2"}
+            | {"f" * 64, "0" * 64,
+               repository_contract.pending_checksum("6.4.2"),
+               repository_contract.pending_checksum("6.4.4")}
+        )
+        for invalid in rejected:
+            with self.subTest(checksum=invalid), self.assertRaises(repository_contract.ContractError):
+                repository_contract.verify_checksum(
+                    invalid, "6.4.2", False,
+                    closed_version="6.4.2", target_version="6.4.4",
+                )
+
     def test_known_closed_versions_require_their_exact_frozen_checksum(self) -> None:
         for version, checksum in repository_contract.CLOSED_RELEASE_CHECKSUMS.items():
             with self.subTest(version=version):
