@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "state": "BOOTSTRAP_CLOSED",
+  "state": "CANDIDATE",
   "channel": "yt",
   "repository": "LJMcarryu/YTIFLYADLib_iOS",
   "closedVersion": "6.4.2",
-  "targetVersion": "6.4.2"
+  "targetVersion": "6.4.4"
 }
