@@ -1,3 +1,5 @@
+# 6.4.4 为候选，尚未发布；当前公开正式版与生产依赖保持 6.4.2。
+# 历史 Tag、Release 和资产保持不可变。
 # 本示例固定使用 6.4.2；公开时间与消费验证结论以 release-state.json.publication 和同版本 GitHub Release 的实际状态为准。
 # 历史 Tag、Release 和资产保持不可变。
 
