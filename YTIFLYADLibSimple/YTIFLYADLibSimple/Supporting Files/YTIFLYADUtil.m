@@ -169,31 +169,4 @@
                                       bidInfo.dealId.length > 0 ? bidInfo.dealId : @"无"];
 }
 
-+ (void)loadImageWithURLString:(NSString *)urlString
-                    completion:(void (^)(UIImage *_Nullable image, NSError *_Nullable error))completion {
-    NSURL *url = urlString.length > 0 ? [NSURL URLWithString:urlString] : nil;
-    if (!url) {
-        NSError *error = [NSError errorWithDomain:@"YTIFLYADLibSimple"
-                                             code:-1
-                                         userInfo:@{NSLocalizedDescriptionKey : @"图片 URL 为空或非法"}];
-        if (completion) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                completion(nil, error);
-            });
-        }
-        return;
-    }
-    NSURLSessionDataTask *task =
-        [NSURLSession.sharedSession dataTaskWithURL:url
-                                  completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-                                      UIImage *image = data.length > 0 ? [UIImage imageWithData:data] : nil;
-                                      dispatch_async(dispatch_get_main_queue(), ^{
-                                          if (completion) {
-                                              completion(image, error);
-                                          }
-                                      });
-                                  }];
-    [task resume];
-}
-
 @end

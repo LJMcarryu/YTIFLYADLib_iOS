@@ -34,8 +34,6 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString *)summaryForError:(nullable YTIFLYAdError *)error;
 /// 返回严格白名单竞价字段 price / dealId 的日志摘要。
 + (NSString *)bidInfoSummaryForAd:(nullable YTIFLYAdBase *)ad;
-+ (void)loadImageWithURLString:(NSString *)urlString
-                    completion:(void (^)(UIImage *_Nullable image, NSError *_Nullable error))completion;
 
 @end
 
