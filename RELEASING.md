@@ -15,9 +15,7 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 ## 6.4.2 冻结与发布记录
 
-> 以下为 `6.4.2` 历史记录；其中“当前”“本版”均只指该历史版本。
-
-`6.4.2` 的正式分发资料以同版本真实冻结 manifest 为准。当前正式版本：[`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。历史 Tag、Release 和资产保持不可变。
+历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#642-冻结与发布记录)。
 
 ## 正式发布唯一入口
 
@@ -25,37 +23,15 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 ## 6.4.1 冻结与发布记录
 
-> 以下为 `6.4.1` 历史记录；其中“当前”“本版”均只指该历史版本。
-
-`6.4.1` 的正式签名资产、checksum 与分发资料以本版本真实冻结 manifest 为准。当前正式版本为 [6.4.1](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)；公开时间和消费验证结论以 `release-state.json.publication` 和同版本 GitHub Release 的实际状态为准。
-
-本版聚焦发布工程优化；SDK 与 UI 行为继承 `6.4.0`，没有新增公开 API。历史 Tag、Release 和资产保持不可变。
+历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#641-冻结与发布记录)。
 
 ## 6.4.0 冻结与发布记录
 
-> 以下为 `6.4.0` 历史记录；其中“当前”“本版”均只指该历史版本。
-
-`6.4.0` 的正式签名资产、checksum 与分发资料已经冻结。当前正式版本为 [6.4.0](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.0)；是否已完成公开及消费验证，以 `release-state.json.publication` 和同版本 GitHub Release 的实际状态为准。
-
-本版将展示、落地页、外跳回流、曝光判断和 UI 生命周期绑定到实际来源 window/Scene；无来源时只允许唯一且明确的前台应用 Scene，不跨 Scene 随机兜底，独立落地页始终归属来源 Scene。开屏 rootVC 仍须入窗；Scene 宿主的 `customWindow` 必须可见、尺寸有限且为正、已关联 Scene，并与 `rootVC.window` 同 Scene，可以是非 key、高 `windowLevel`、无 rootVC。非法输入展示失败，修正后可重试。公开 API 方法签名不变。
+历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#640-冻结与发布记录)。
 
 ## 6.3.5 状态
 
-`6.3.5` 已于 2026-09-14T12:39:07Z 正式公开，发布后的 [CocoaPods / SwiftPM 消费验证](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/34844587952)为 `success`；本仓 `release-state.json` 为 `6.3.5/CLOSED`。Tag 和发布资产保持不可变。
-
-- `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`82d8cab58eba588104eee9bc89063952a277af65`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89`
-- `artifactCandidateId`：`17cccada18787f54c2faca204769d245a3ee29adf40f6c85c679896c28f16ba4`
-
-正式签名二进制、SwiftPM checksum、真实 A/B 提交和 `delivery-manifest.json` 已完成冻结；`YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256 为 `d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83`，`YTIFLYADLib-6.3.5.zip` 的 SHA-256 为 `ab3ed76a2f80ae65c0c8d5b7d6cf0d34ba26380c5b8ea020d305d82445f30631`。
-
-`releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
-公开可用性以同版本 GitHub Release 和发布后 CI 为准。
-
-正式态采用两提交模型：二进制及 SwiftPM 资源均从提交 A 构建；提交 B 只回填 checksum、扫描汇总和验收事实，必须是 A 的后代。`6.3.5` 的正式 Tag 保留 `FROZEN`，公开 `main` 的 `release-state.json` 已为 `6.3.5/CLOSED`。下一版本 Candidate 由编排器从已关闭基线生成，必须包含该版本真实 checksum、两个不同的真实 A/B 提交和精确资产库存；不能把 `main` 的 CLOSED 提交当作新的 FROZEN 候选。
-
-本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过，也不代表最终宿主合规、`Validate App` 或 Apple 审核通过。
+历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#635-状态)。
 
 ## 候选与正式资产契约
 
@@ -63,26 +39,26 @@ YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生�
 
 ```text
 YTIFLYADLib.xcframework.zip
-YTIFLYADLib-6.4.2.zip
+YTIFLYADLib-<目标版本>.zip
 checksums.txt
 delivery-manifest.json
 ```
 
 消费工作流同时支持：
 
-- `validation_mode=draft_candidate`：只允许从精确 `release-candidate/6.4.2-<candidateId>` 分支触发，使用专用只读 Token 下载绑定 Release ID 的 Draft 资产；
+- `validation_mode=draft_candidate`：只允许从精确 `release-candidate/<version>-<candidateId>` 分支触发，使用专用只读 Token 下载绑定 Release ID 的 Draft 资产；
 - `validation_mode=formal_release`：只接受已公开 annotated tag，不携带 Token 匿名下载四资产。
 
 工作流须校验两个 zip 的同源 XCFramework、资源包、请求地址、双切片、iOS 11.0、非 ad-hoc 签名、framework Bundle ID、公开头/类符号能力边界，并实际构建 CocoaPods Demo 与 SwiftPM 最小消费端。
 
 ## 私有仓底层产物诊断
 
-以下仅供编排器调用或故障定位，不是独立正式发布入口：
+以下命令仅在私有源码仓用于本地诊断，输出不构成正式发布资产或 receipt。正式模式的 candidate 与构建输入由编排器提供：
 
 ```bash
-IFLY_NEW_VERSION_RELEASE=1 \
-IFLY_SDK_CODESIGN_IDENTITY='正式 SDK 签名身份' \
-scripts/package-yt-release.sh --version 6.3.5
+VERSION='<目标版本>'
+IFLY_SDK_CODESIGN_IDENTITY='<本机诊断签名身份>' \
+scripts/package-yt-release.sh --version "${VERSION}"
 ```
 
 底层门禁至少必须证明：
@@ -94,6 +70,6 @@ scripts/package-yt-release.sh --version 6.3.5
 - `YTAdvSDK.bundle/PrivacyInfo.xcprivacy` 存在且与仓库 SwiftPM 资源完全一致；
 - `delivery-manifest.json` 的 `distribution=YT`、`variant=YTSplashInterstitial`、`moduleName=YTIFLYADLib`、`capabilities=[Splash, Interstitial]`、`videoEnabled=true` 绑定同一源码提交。
 
-`6.3.5` 不沿用历史风险接受名单；Apple Review 扫描策略为 `failOnWarning=true`、`strict=true`、`requireManual=true`、`acceptedWarningRuleIds=[]`。本版扫描未执行且不是发布门禁；未扫描不得表述为通过，也不代表最终宿主合规或 Apple 审核通过。
+Apple Review 为主动可选扫描；目标版本策略以对应计划为准，未执行仅记录 `not-run`，不得表述为通过。
 
 已发布 tag 和 zip 不允许覆盖重打；任何二进制变化都必须发布新版本。
