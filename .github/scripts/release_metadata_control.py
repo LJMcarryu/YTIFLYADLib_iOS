@@ -12,7 +12,7 @@ from typing import Any, Callable, Mapping
 from urllib.parse import quote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from github_http_retry import call_with_retry
+from github_http_retry import call_with_retry, execute_in_worker, read_json_response
 
 
 VERSION = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
@@ -137,12 +137,19 @@ class CrossHostCredentialSafeRedirect(urllib.request.HTTPRedirectHandler):
 def authenticated_release_request(
     url: str,
     headers: Mapping[str, str],
+    *, executor=None, timeout_seconds=180,
 ) -> dict[str, Any]:
+    runner = execute_in_worker if executor is None else executor
+    return runner(__file__, "_authenticated_release_request_worker",
+                  {"url": url, "headers": dict(headers)}, timeout_seconds=timeout_seconds)
+
+
+def _authenticated_release_request_worker(url, headers):
     def request_once() -> dict[str, Any]:
         request = urllib.request.Request(url, headers=dict(headers))
         opener = urllib.request.build_opener(CrossHostCredentialSafeRedirect())
         with opener.open(request, timeout=30) as response:
-            value = json.load(response)
+            value = read_json_response(response)
         require(isinstance(value, dict), "Release API 响应必须是对象")
         return value
 

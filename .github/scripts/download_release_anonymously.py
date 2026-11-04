@@ -21,7 +21,8 @@ from urllib.error import HTTPError, URLError
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from github_http_retry import call_with_retry, failure_classification, retry_delay
+from github_http_retry import (call_with_retry, failure_classification, retry_delay,
+                               execute_in_worker, isolated_asset_download, read_json_response)
 from release_metadata_control import formal_release_metadata
 
 
@@ -147,7 +148,11 @@ def _verified_cache(asset: Dict[str, Any], destination: Path) -> str | None:
     if destination.stat().st_size != asset["size"]:
         destination.unlink()
         return None
-    actual = hashlib.sha256(destination.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with destination.open("rb") as cached:
+        while chunk := cached.read(1024 * 1024):
+            digest.update(chunk)
+    actual = digest.hexdigest()
     if not hmac.compare_digest(actual, asset["digest"].removeprefix("sha256:")):
         destination.unlink()
         return None
@@ -156,7 +161,7 @@ def _verified_cache(asset: Dict[str, Any], destination: Path) -> str | None:
 
 def download_with_retry(asset: Dict[str, Any], destination: Path, open_response,
                         validate_response, *, max_attempts: int = DOWNLOAD_MAX_ATTEMPTS,
-                        sleeper=time.sleep) -> str:
+                        sleeper=time.sleep, commit=True) -> str:
     cached = _verified_cache(asset, destination)
     if cached is not None:
         return cached
@@ -181,7 +186,8 @@ def download_with_retry(asset: Dict[str, Any], destination: Path, open_response,
             actual = digest.hexdigest()
             require(hmac.compare_digest(actual, asset["digest"].removeprefix("sha256:")),
                     f"{asset['name']} SHA-256 与 API digest 不一致")
-            temporary.replace(destination)
+            if commit:
+                temporary.replace(destination)
             return actual
         except Exception as error:
             temporary.unlink(missing_ok=True)
@@ -192,7 +198,18 @@ def download_with_retry(asset: Dict[str, Any], destination: Path, open_response,
     raise AssertionError("unreachable")
 
 
-def download_and_hash(asset: Dict[str, Any], destination: Path) -> str:
+def download_and_hash(asset: Dict[str, Any], destination: Path, *, executor=None,
+                      timeout_seconds=300) -> str:
+    return isolated_asset_download(__file__, "_download_asset_worker",
+        {"asset": asset, "destination": str(destination)}, destination,
+        executor=executor, timeout_seconds=timeout_seconds)
+
+
+def _download_asset_worker(asset, destination):
+    destination = Path(destination)
+    cached = _verified_cache(asset, destination)
+    if cached is not None:
+        return {"digest": cached, "cached": True}
     def open_response():
         request = build_anonymous_request(
             asset["browser_download_url"], "application/octet-stream"
@@ -206,7 +223,8 @@ def download_and_hash(asset: Dict[str, Any], destination: Path) -> str:
         require(final_host == "github.com" or final_host.endswith(".githubusercontent.com"),
                 f"资产重定向到非 GitHub 主机: {response.geturl()}")
 
-    return download_with_retry(asset, destination, open_response, validate_response)
+    digest = download_with_retry(asset, destination, open_response, validate_response, commit=False)
+    return {"digest": digest, "cached": False}
 
 
 def download_release(

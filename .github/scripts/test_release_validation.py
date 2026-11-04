@@ -452,6 +452,14 @@ class ReleaseMetadataTests(unittest.TestCase):
 
 
 class RequestBoundaryTests(unittest.TestCase):
+    def setUp(self):
+        # 逻辑测试显式注入同步执行器；硬期限单独走真实解释器测试。
+        def inline(path, name, arguments, **kwargs):
+            module = draft if Path(path).name == "download_draft_release.py" else anonymous
+            return getattr(module, name)(**arguments)
+        self.enterContext(mock.patch.object(draft, "execute_in_worker", side_effect=inline))
+        self.enterContext(mock.patch("github_http_retry.execute_in_worker", side_effect=inline))
+
     def test_draft_metadata_and_ref_reads_retry_including_final_inventory_check(self) -> None:
         import io
         from urllib.error import HTTPError

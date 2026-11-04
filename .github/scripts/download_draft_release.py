@@ -14,11 +14,13 @@ from typing import Any, Dict
 from urllib.parse import quote, urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-from github_http_retry import call_with_retry
+from github_http_retry import (call_with_retry, execute_in_worker,
+                               isolated_asset_download, read_json_response)
 
 from download_release_anonymously import (
     VerificationError,
     download_with_retry,
+    _verified_cache,
     expected_asset_names,
     require,
     validate_asset_inventory,
@@ -242,8 +244,20 @@ def stable_release_snapshot(release: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def download_and_hash(
-    opener: Any, asset: Dict[str, Any], destination: Path, token: str
+    opener: Any, asset: Dict[str, Any], destination: Path, token: str,
+    *, executor=None, timeout_seconds=300,
 ) -> str:
+    return isolated_asset_download(__file__, "_download_asset_worker", {
+        "asset": asset, "destination": str(destination), "token": token,
+    }, destination, executor=executor, timeout_seconds=timeout_seconds)
+
+
+def _download_asset_worker(asset, destination, token):
+    destination = Path(destination)
+    cached = _verified_cache(asset, destination)
+    if cached is not None:
+        return {"digest": cached, "cached": True}
+    opener = build_opener(SafeGitHubAssetRedirectHandler())
     def open_response():
         request = build_authenticated_request(
             asset["url"], "application/octet-stream", token
@@ -257,15 +271,26 @@ def download_and_hash(
         require(final_host == "api.github.com" or is_github_asset_host(final_host),
                 f"资产响应来自非 GitHub 资产主机: {response.geturl()}")
 
-    return download_with_retry(asset, destination, open_response, validate_response)
+    digest = download_with_retry(asset, destination, open_response, validate_response, commit=False)
+    return {"digest": digest, "cached": False}
 
 
 
-def read_authenticated_json(opener: Any, request: Request, label: str) -> Dict[str, Any]:
+def read_authenticated_json(opener: Any, request: Request, label: str, *,
+                            executor=None, timeout_seconds=180) -> Dict[str, Any]:
+    runner = execute_in_worker if executor is None else executor
+    return runner(__file__, "_read_authenticated_json_worker", {
+        "url": request.full_url, "headers": dict(request.header_items()), "label": label,
+    }, timeout_seconds=timeout_seconds)
+
+
+def _read_authenticated_json_worker(url, headers, label):
+    request = Request(url, headers=headers)
+    opener = build_opener(SafeGitHubAssetRedirectHandler())
     def request_once():
         with opener.open(request, timeout=30) as response:
             require(response.status == 200, f"{label} HTTP {response.status}")
-            value = json.loads(response.read().decode("utf-8"))
+            value = read_json_response(response)
         require(isinstance(value, dict), f"{label} 响应不是对象")
         return value
     return call_with_retry(request_once)
