@@ -203,17 +203,10 @@ jobs:
         env:
           VALIDATION_MODE: ${{ github.event_name == 'release' && 'formal_release' || github.ref_type == 'tag' && 'formal_release' || inputs.validation_mode || 'repository' }}
         run: |
-          python3 - <<'PY'
-          import os, sys
-          from pathlib import Path
-          sys.path.insert(0, ".github/scripts")
-          from release_metadata_control import read_release_control
-          read_release_control(Path(".github/scripts/release-control.json"),
-              repository="${{ github.repository }}", channel="yt",
-              release_state_path=Path("release-state.json"),
-              validation_mode=os.environ["VALIDATION_MODE"])
-          print("release-control 版本契约校验通过")
-          PY
+          python3 .github/scripts/validate_release_control.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --channel yt \
+            --validation-mode "$VALIDATION_MODE"
 
       - name: 读取仓库当前版本
         id: repository-version
