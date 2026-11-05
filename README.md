@@ -7,7 +7,7 @@
 
 <!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.4","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4"} -->
 
-[运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持](#隐私许可与支持)
+[接入指南索引](docs/接入指南/README.md) · [运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持](#隐私许可与支持)
 
 ## 能力与接入身份
 
@@ -97,32 +97,6 @@ Simple 实际调用开屏、插屏公开 API，使用 `Load`、`Show`、`Destroy
 
 反馈时提供 SDK/iOS/Xcode 版本、安装方式、广告形式、复现步骤与错误码；去除 IDFA、CAID、token、用户信息和敏感 URL。发布版日志仅保留错误与诊断，日志开关不会恢复已裁剪的请求/响应详情。
 
-## 原章节入口
+## 接入指南入口
 
-### 请求前配置
-
-请见[请求前配置](docs/接入指南/隐私与请求配置.md)。
-
-### 开屏广告
-
-请见[开屏广告](docs/接入指南/开屏广告.md)。
-
-### 插屏广告
-
-请见[插屏广告](docs/接入指南/插屏广告.md)。
-
-### 生命周期与回调
-
-请见[生命周期与回调](docs/接入指南/生命周期与排错.md)。
-
-### 服务端竞价与结果通知
-
-请见[服务端竞价与结果通知](docs/接入指南/服务端竞价.md)。
-
-### 常见问题
-
-请见[常见问题](docs/接入指南/生命周期与排错.md#常见问题)。
-
-### 反馈与支持
-
-请见[反馈与支持](#隐私许可与支持)。
+完整主题索引见[接入指南索引](docs/接入指南/README.md)。

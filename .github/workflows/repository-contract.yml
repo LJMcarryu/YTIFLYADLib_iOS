@@ -1,0 +1,25 @@
+name: Repository contract
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: 公开仓结构契约
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Verify public repository contract
+        run: python3 scripts/verify_public_contract.py
+      - name: Run public contract test
+        run: python3 -m unittest tests/test_public_contract.py -v

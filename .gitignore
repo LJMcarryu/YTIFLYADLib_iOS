@@ -63,3 +63,6 @@ DerivedData/
 
 # demo 本地构建产物（xcarchive/.app 等，不入库）
 YTIFLYADLibSimple/build/
+
+# 公开仓统一构建与发布产物忽略规则
+*.xcframework.zip

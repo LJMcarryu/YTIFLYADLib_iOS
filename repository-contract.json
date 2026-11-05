@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "repository": "LJMcarryu/YTIFLYADLib_iOS",
+  "channel": "yt",
+  "requiredRootFiles": [
+    "README.md",
+    "CHANGELOG.md",
+    "RELEASING.md",
+    "LICENSE",
+    "SECURITY.md",
+    ".gitignore",
+    "release-state.json",
+    "Package.swift",
+    "YTIFLYADLib.podspec"
+  ],
+  "package": {
+    "manifest": "Package.swift",
+    "podspec": "YTIFLYADLib.podspec"
+  },
+  "demo": {
+    "root": "YTIFLYADLibSimple",
+    "readme": "YTIFLYADLibSimple/README.md",
+    "podfile": "YTIFLYADLibSimple/Podfile",
+    "project": "YTIFLYADLibSimple/YTIFLYADLibSimple.xcodeproj",
+    "scheme": "YTIFLYADLibSimple"
+  },
+  "docs": {
+    "index": "docs/接入指南/README.md",
+    "guideRoot": "docs/接入指南",
+    "releaseHistory": "docs/需求设计/发布验收/历史发布记录.md",
+    "guides": [
+      "安装方式.md",
+      "隐私与请求配置.md",
+      "开屏广告.md",
+      "插屏广告.md",
+      "服务端竞价.md",
+      "生命周期与排错.md"
+    ]
+  },
+  "github": {
+    "workflow": ".github/workflows/repository-contract.yml",
+    "pullRequestTemplate": ".github/PULL_REQUEST_TEMPLATE.md",
+    "issueConfig": ".github/ISSUE_TEMPLATE/config.yml",
+    "bugTemplate": ".github/ISSUE_TEMPLATE/bug_report.yml"
+  }
+}
