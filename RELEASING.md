@@ -1,75 +1,17 @@
-# 发布流程
+# 发布维护说明
 
-## 6.4.4 冻结与发布记录
+## 6.4.6 TOS 发布
 
-<!-- ifly-release-status: {"schemaVersion":1,"version":"6.4.4","releaseState":"FORMAL","distribution":"github-release","releaseUrl":"https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4"} -->
+<!-- ifly-release-status: {"version":"6.4.6","status":"FORMAL","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/release-record.json"} -->
 
-- `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`25ebc73166c9596822cfcf4e93d74fc6c98bd5e4`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`56aaeb4d5b76858b266981d30afd76bff6a73ad2`
+本版 SDK 二进制改由火山云 TOS 分发，下载基础地址为 `https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt`。SwiftPM 与 CocoaPods 的公开版本入口保持，生产项目固定 `6.4.6`。从共享源码重新构建，包含点击字段 `ids_a` / `__IDS_A__`、CAID 时间字段和加速度计不可用守卫；旧版本不能据此解释为已包含这些变化。
 
-`6.4.4` 的正式分发资料以同版本真实冻结 manifest 为准。当前正式版本：[`6.4.4`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。历史 Tag、Release 和资产保持不可变。
+产物清单、大小、SHA-256、源码与元数据提交见 [TOS 发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/release-record.json)。只有该记录存在且 `release-state.json` 为 `CLOSED` 才表示本版发布完成。正式证据包含匿名下载以及 SwiftPM/CocoaPods 的 simulator/device 编译链接与资源检查；普通 CI 只检查元数据。CocoaPods trunk、Apple 人工审核与真实媒体验收不在本次分发完成范围。
 
+## 操作顺序
 
-YT SDK 由私有源码仓 `LJMcarryu/IFLYADLibDemo` 的 `main` 单一源码生成。本仓不接收 SDK 私有源码或手工替换的二进制。
+正式入口位于私有源码仓 `scripts/release-orchestrator.py`，显式选择对应 `release-plan-tos*.json`。依次执行 `prepare → preflight → publish → verify → closeout`，每个执行阶段均须 `--execute`。上传凭据仅保存在维护者本机的仓库外文件，不写入公开仓。
 
-## 6.4.2 冻结与发布记录
+资产对象路径为 `ios_sdk/<version>/<channel>/<asset>`，版本内对象禁止覆盖；同名对象只有完整内容摘要一致才可收养。上传后从公开域名匿名下载并实际消费，成功后才推进 main、创建 annotated Tag 和写入 TOS 发布记录。失败按同一候选/修订续跑，不移动历史 Tag 或覆盖既有资产。
 
-历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#642-冻结与发布记录)。
-
-## 正式发布唯一入口
-
-新版本正式发布只能从私有源码仓根目录的 `scripts/release-orchestrator.py` 发起，并按 `prepare → preflight → publish → verify → closeout` 顺序完成。本仓 `.github/scripts/**`、GitHub Actions `workflow_dispatch` 和各类打包命令只是底层门禁或故障诊断入口，不能替代编排器 receipt，也不得从本公开仓手工创建或移动 tag、发布 Release。
-
-## 6.4.1 冻结与发布记录
-
-历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#641-冻结与发布记录)。
-
-## 6.4.0 冻结与发布记录
-
-历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#640-冻结与发布记录)。
-
-## 6.3.5 状态
-
-历史记录见[历史发布记录](docs/需求设计/发布验收/历史发布记录.md#635-状态)。
-
-## 候选与正式资产契约
-
-候选 Draft 和正式 Release 都必须精确包含：
-
-```text
-YTIFLYADLib.xcframework.zip
-YTIFLYADLib-<目标版本>.zip
-checksums.txt
-delivery-manifest.json
-```
-
-消费工作流同时支持：
-
-- `validation_mode=draft_candidate`：只允许从精确 `release-candidate/<version>-<candidateId>` 分支触发，使用专用只读 Token 下载绑定 Release ID 的 Draft 资产；
-- `validation_mode=formal_release`：只接受已公开 annotated tag，不携带 Token 匿名下载四资产。
-
-工作流须校验两个 zip 的同源 XCFramework、资源包、请求地址、双切片、iOS 11.0、非 ad-hoc 签名、framework Bundle ID、公开头/类符号能力边界，并实际构建 CocoaPods Demo 与 SwiftPM 最小消费端。
-
-## 私有仓底层产物诊断
-
-以下命令仅在私有源码仓用于本地诊断，输出不构成正式发布资产或 receipt。正式模式的 candidate 与构建输入由编排器提供：
-
-```bash
-VERSION='<目标版本>'
-IFLY_SDK_CODESIGN_IDENTITY='<本机诊断签名身份>' \
-scripts/package-yt-release.sh --version "${VERSION}"
-```
-
-底层门禁至少必须证明：
-
-- `YTIFLYADLib` 的两个 framework 切片 `CFBundleIdentifier` 都为 `com.gameley.www.YouTuiAdSDK`；
-- device 为 arm64，simulator 为 arm64/x86_64，最低 iOS 11.0；
-- 只存在 Splash、Interstitial 入口头和类符号，不存在 Banner、Reward、NativeFeed；
-- `adRequestURL=https://msdk.voiceads.cn/sdk/req`，`customAdRequestURL=false`；
-- `YTAdvSDK.bundle/PrivacyInfo.xcprivacy` 存在且与仓库 SwiftPM 资源完全一致；
-- `delivery-manifest.json` 的 `distribution=YT`、`variant=YTSplashInterstitial`、`moduleName=YTIFLYADLib`、`capabilities=[Splash, Interstitial]`、`videoEnabled=true` 绑定同一源码提交。
-
-Apple Review 为主动可选扫描；目标版本策略以对应计划为准，未执行仅记录 `not-run`，不得表述为通过。
-
-已发布 tag 和 zip 不允许覆盖重打；任何二进制变化都必须发布新版本。
+本仓 GitHub 仅承载清单、文档、示例和 Tag，新版本不创建 GitHub Release。历史记录见 [CHANGELOG](CHANGELOG.md) 和 [历史发布记录](docs/需求设计/发布验收/历史发布记录.md)。
