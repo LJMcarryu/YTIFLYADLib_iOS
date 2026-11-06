@@ -89,7 +89,13 @@ def check(root: Path) -> None:
     except json.JSONDecodeError as exc:
         raise ContractError(f"README 发布标记不是合法 JSON: {exc}") from exc
     require(marker_data.get("version") == version, "README 发布标记版本与 release-state 不一致")
-    require(marker_data.get("releaseUrl") == f"https://github.com/{repo}/releases/tag/{version}", "README Release URL 与契约不一致")
+    if state.get("distributionBackend") == "tos":
+        require(state.get("schemaVersion") == 4, "TOS 状态 schema 非法")
+        expected_url = f"https://download-adsdk.voiceads.cn/ios_sdk/{version}/{channel}/release-record.json"
+        require(marker_data.get("distribution") == "tos", "TOS 发布标记来源不一致")
+    else:
+        expected_url = f"https://github.com/{repo}/releases/tag/{version}"
+    require(marker_data.get("releaseUrl") == expected_url, "README Release URL 与契约不一致")
 
     if (root / ".git").exists():
         try:
