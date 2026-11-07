@@ -1,7 +1,7 @@
 {
   "schemaVersion": 4,
   "distributionBackend": "tos",
-  "phase": "FROZEN",
+  "phase": "CLOSED",
   "version": "6.4.6",
   "channel": "yt",
   "repository": "LJMcarryu/YTIFLYADLib_iOS",
@@ -35,5 +35,8 @@
       "sha256": "5dcb83e4c594af51024443409dda7d828b9df52ccd5af66ddce2b731708577e6",
       "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/delivery-manifest.json"
     }
-  ]
+  ],
+  "distributionRevisionId": "60a16af6ee75200c41e849dc59f9f68cdae1deb47a5ef1373aea1c994b93ed70",
+  "verifyReceiptSha256": "ae526acd48a516bd3981db4938a2420fa71ab0ee4b72a51f3ea090cb7fab74c6",
+  "tagCommit": "a90716a6030a03114e6be5eb95881006e498c82e"
 }
