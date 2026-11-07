@@ -1,30 +1,39 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 4,
+  "distributionBackend": "tos",
+  "phase": "FROZEN",
+  "version": "6.4.6",
   "channel": "yt",
   "repository": "LJMcarryu/YTIFLYADLib_iOS",
-  "version": "6.4.4",
-  "phase": "CLOSED",
-  "binarySourceCommit": "25ebc73166c9596822cfcf4e93d74fc6c98bd5e4",
-  "releaseMetadataCommit": "56aaeb4d5b76858b266981d30afd76bff6a73ad2",
-  "artifactInventory": {
-    "count": 4,
-    "sha256": "6cc0d1be893029b1c184e2b253d7f3caf5338552bd5d06d0de381933fb00fe5f"
-  },
-  "appleReview": {
-    "requiredForRelease": false,
-    "statusAtFreeze": "not-run",
-    "evidenceIncluded": false
-  },
-  "publication": {
-    "releaseId": 424100297,
-    "tagName": "6.4.4",
-    "tagObjectSha": "bd54f14cac5cdc3437b3d1fc5e3b43089eab9932",
-    "tagCommitSha": "a32feb16f7e1432a4b5c4f1571b20149c1055bb3",
-    "releaseUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4",
-    "publishedAt": "2026-10-26T10:47:26Z",
-    "formalConsumerRunId": 40310141318,
-    "formalConsumerRunUrl": "https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/40310141318",
-    "conclusion": "success",
-    "verifiedAt": "2026-10-26T10:49:04Z"
-  }
+  "artifactCandidateId": "8cb0e312dd3a74c036cb5ffa1dae7b7406514a95e94d9cddc848d4716f053441",
+  "binarySourceCommit": "b50f1af836e06ba61414d580c154617c24c34bfa",
+  "releaseMetadataCommit": "1b043f4b14fec0977c7431a51aa0bdde81474080",
+  "uploadInventorySha256": "7abf2b74a7746f4309aa4db1cdb097967d3896aed779e55973cc79444dbdcbef",
+  "channelInventorySha256": "1ac6d795a1282ea276527e756e802cb141a6932cce71aaa64052ddb30fed42b0",
+  "assets": [
+    {
+      "name": "YTIFLYADLib.xcframework.zip",
+      "size": 2606210,
+      "sha256": "7362f924db37a4459c542d897fc11969d6d01127de83346e18ebea2d2c697171",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/YTIFLYADLib.xcframework.zip"
+    },
+    {
+      "name": "YTIFLYADLib-6.4.6.zip",
+      "size": 2638977,
+      "sha256": "e7dab12b1e9a3c18ea5a1951602e1564f1f01ff4fe287defc5433a4fad285fad",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/YTIFLYADLib-6.4.6.zip"
+    },
+    {
+      "name": "checksums.txt",
+      "size": 290,
+      "sha256": "8c0b5b316178d7f9e41d4dda18cdff94afe04eb50d696010af24d7c5b7b5168a",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/checksums.txt"
+    },
+    {
+      "name": "delivery-manifest.json",
+      "size": 2826,
+      "sha256": "5dcb83e4c594af51024443409dda7d828b9df52ccd5af66ddce2b731708577e6",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/delivery-manifest.json"
+    }
+  ]
 }
