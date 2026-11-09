@@ -25,10 +25,10 @@ open YTIFLYADLibSimple.xcworkspace
 
 已有仓库时，直接进入其中的 `YTIFLYADLibSimple` 目录执行最后两条命令。`pod install` 会生成 workspace；后续都从 `.xcworkspace` 打开。
 
-`Podfile` 已固定到 `6.5.0` 的公开 Podspec：
+`Podfile` 已通过 CocoaPods 官方 trunk 固定到 `6.5.0`：
 
 ```ruby
-pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.5.0/YTIFLYADLib.podspec'
+pod 'YTIFLYADLib', '6.5.0'
 ```
 
 CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSupport` 及弱链接的 `AppTrackingTransparency`，无需再手动 Embed framework 或添加资源副本。
@@ -146,7 +146,7 @@ xcodebuild build \
 
 | 现象 | 处理 |
 | --- | --- |
-| `pod install` 失败 | 检查 CocoaPods、网络和 Podspec/Release URL，保留第一条实际下载或解析错误；不要改成 trunk 安装 |
+| `pod install` 失败 | 检查 CocoaPods、网络和 CocoaPods trunk/TOS 下载地址，保留第一条实际下载或解析错误；确认版本已发布到 CocoaPods trunk 后重试 |
 | 找不到 `YTIFLYADLib` | 先安装依赖，再打开 workspace；确认 scheme 和 target 正确 |
 | 真机签名失败 | 选择自己的 Team，检查 Bundle Identifier、设备注册与签名证书 |
 | 收到 `70204` | 当前无填充；检查广告位和投放，按业务策略稍后重试 |

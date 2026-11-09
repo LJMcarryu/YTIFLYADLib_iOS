@@ -1,4 +1,4 @@
-# 本示例固定使用 6.5.0；极速发布未验证，verification=not-run。
+# 本示例固定使用 CocoaPods trunk 的 6.5.0。
 # 历史 Tag、Release 和资产保持不可变。
 
 source 'https://cdn.cocoapods.org/'
@@ -13,8 +13,8 @@ platform :ios, '11.0'
 target 'YTIFLYADLibSimple' do
   use_frameworks!
   # 优推 YT 媒体定制 SDK：静态 framework，仅开屏/插屏，支持图片和视频。
-  # 二进制托管在本仓 TOS 发布记录s，podspec 经 raw URL 直连；静态库随 app 链接（无需 Embed），
+  # 二进制托管在本仓 TOS 发布记录s，通过 CocoaPods 官方 trunk 获取 Podspec；静态库随 app 链接（无需 Embed），
   # 资源包 YTAdvSDK.bundle 经 podspec s.resources 自动拷入 app，-ObjC 由 podspec 自动注入。
   # 固定到 6.5.0 tag 的 podspec 和同版本 Release 资产。
-  pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.5.0/YTIFLYADLib.podspec'
+  pod 'YTIFLYADLib', '6.5.0'
 end

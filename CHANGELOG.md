@@ -2,7 +2,7 @@
 
 ## [6.5.0] - 极速发布（未验证）
 
-> **6.5.0 极速发布未验证**：`verification=not-run`。本次仅编译、打包、上传 TOS，并同步公开清单和 Tag；不运行测试、匿名下载复验、SwiftPM/CocoaPods 消费验收或 CI。风险由发布者承担。
+> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证；匿名下载复验、SwiftPM 消费验收、真机广告填充和 Apple 审核仍未执行。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 

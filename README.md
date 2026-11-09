@@ -1,6 +1,6 @@
 # YTIFLYADLib iOS SDK
 
-> **6.5.0 极速发布未验证**：`verification=not-run`。本次仅编译、打包、上传 TOS，并同步公开清单和 Tag；不运行测试、匿名下载复验、SwiftPM/CocoaPods 消费验收或 CI。风险由发布者承担。
+> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证；匿名下载复验、SwiftPM 消费验收、真机广告填充和 Apple 审核仍未执行。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 
@@ -50,7 +50,7 @@
 
 ## 安装
 
-推荐通过精确版本的公开 Podspec URL 安装，将 `YourApp` 替换为实际 target：
+推荐通过 CocoaPods 官方 trunk 安装精确版本，将 `YourApp` 替换为实际 target：
 
 ```ruby
 source 'https://cdn.cocoapods.org/'
@@ -58,8 +58,7 @@ platform :ios, '11.0'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'YTIFLYADLib',
-      :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.5.0/YTIFLYADLib.podspec'
+  pod 'YTIFLYADLib', '6.5.0'
 end
 ```
 
@@ -68,7 +67,7 @@ pod install
 open YourApp.xcworkspace
 ```
 
-CocoaPods 自动投递 `YTAdvSDK.bundle`、传播 `-ObjC` 并处理 `AdSupport` 与弱链接 `AppTrackingTransparency`。保留完整 Podspec URL，不使用仅填写 Pod 名和版本的 trunk 安装方式。
+CocoaPods 自动投递 `YTAdvSDK.bundle`、传播 `-ObjC` 并处理 `AdSupport` 与弱链接 `AppTrackingTransparency`。直接使用 CocoaPods trunk 的 Pod 名称和固定版本。
 
 [SwiftPM 精确版本与手动集成](docs/接入指南/安装方式.md)中提供产品选择、完整包资产名、资源和链接设置。
 
