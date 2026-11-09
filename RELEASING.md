@@ -1,30 +1,37 @@
 # 发布维护说明
 
-## 6.5.0 极速发布
+## 当前发布：6.5.0
 
-> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证；匿名下载复验、SwiftPM 消费验收、真机广告填充和 Apple 审核仍未执行。
+> **6.5.0 分发已完成，发布状态为 `FAST_UNVERIFIED`。** TOS 资产、公开仓 `main`/`6.5.0` Tag、CocoaPods trunk 和静态接入网站均已完成；发布结果与验证结果分开记录。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 
-资产上传摘要见[极速发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json)，元数据提交以同版本 Tag 为准；公开状态为 `FAST_PUBLISHED`，不表示全量验收通过。CocoaPods trunk 已由极速入口自动发布；Apple 人工审核和真实媒体验收未执行。
+资产回执：[6.5.0 极速发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json)。网站接入指南：[当前渠道指南](https://download-adsdk.voiceads.cn/yt/)。补验记录见私有仓 `docs/需求设计/发布验收/6.5.0SwiftPM接入验证.md`；已覆盖模拟器接入、链接和资源核对，不能据此声称真机运行、广告填充或 Apple 审核通过。
 
-操作分两步：先在私有仓运行 `python3 scripts/fast-release.py build-upload --version 6.5.0 --channel all` 编译打包并上传 TOS，再运行 `python3 scripts/fast-release.py publish --from <本轮fast-release.json路径>` 同步公开 Package.swift、Podspec、资源、示例精确版本和 annotated Tag。提交包含 `[skip ci]`，本次不运行 CI；既有共享控制文件和工作流保持原样。普通 atomic push 同时推进 main 和新 Tag；不覆盖旧 Tag 或资产。
+## 日常发布
 
-## 历史维护说明（6.4.6，不适用于本次极速发布）
+日常发版在私有仓根目录使用唯一入口。新版本必须使用未发布的 `x.y.z`，不能复用已有版本、Tag 或 TOS 资产：
 
->
-> ## 6.4.6 TOS 发布
->
->
->
-> 本版 SDK 二进制改由火山云 TOS 分发，下载基础地址为 `https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt`。SwiftPM 与 CocoaPods 的公开版本入口保持，生产项目固定 `6.4.6`。从共享源码重新构建，包含点击字段 `ids_a` / `__IDS_A__`、CAID 时间字段和加速度计不可用守卫；旧版本不能据此解释为已包含这些变化。
->
-> 产物清单、大小、SHA-256、源码与元数据提交见 [TOS 发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/release-record.json)。只有该记录存在且 `release-state.json` 为 `CLOSED` 才表示本版发布完成。正式证据包含匿名下载以及 SwiftPM/CocoaPods 的 simulator/device 编译链接与资源检查；普通 CI 只检查元数据。CocoaPods trunk 已由极速入口自动发布；Apple 人工审核与真实媒体验收不在本次分发完成范围。
->
-> ## 操作顺序
->
-> 正式入口位于私有源码仓 `scripts/release-orchestrator.py`，显式选择对应 `release-plan-tos*.json`。依次执行 `prepare → preflight → publish → verify → closeout`，每个执行阶段均须 `--execute`。上传凭据仅保存在维护者本机的仓库外文件，不写入公开仓。
->
-> 资产对象路径为 `ios_sdk/<version>/<channel>/<asset>`，版本内对象禁止覆盖；同名对象只有完整内容摘要一致才可收养。上传后从公开域名匿名下载并实际消费，成功后才推进 main、创建 annotated Tag 和写入 TOS 发布记录。失败按同一候选/修订续跑，不移动历史 Tag 或覆盖既有资产。
->
-> 本仓 GitHub 仅承载清单、文档、示例和 Tag，新版本不创建 GitHub Release。历史记录见 [CHANGELOG](CHANGELOG.md) 和 [历史发布记录](docs/需求设计/发布验收/历史发布记录.md)。
+```bash
+.venv-tos/bin/python3 scripts/fast-release.py build-upload \
+  --version <新版本> --channel all --publish
+```
+
+该命令按“编译/打包 → TOS → 公开仓 `main`/Tag → CocoaPods trunk → 静态网站”顺序执行。`--publish` 默认包含 trunk 和网站；显式跳过任一项会保留未完成状态，不能写成全发布 `complete`。网站包含 trunk 安装指引，trunk 未完成时应同时使用 `--skip-cocoapods-trunk --skip-site`，待 trunk 完成后用原回执 `resume` 补齐。
+
+打包完成后的发布失败或中断，沿用同一份 `fast-release.json` 续跑，不重新编译；构建失败须先修复编译错误，再创建新一轮构建：
+
+```bash
+.venv-tos/bin/python3 scripts/fast-release.py resume --from '/绝对路径/fast-release.json'
+.venv-tos/bin/python3 scripts/fast-release.py status --from '/绝对路径/fast-release.json'
+.venv-tos/bin/python3 scripts/fast-release.py status --from '/绝对路径/fast-release.json' --json
+.venv-tos/bin/python3 scripts/fast-release.py site --from '/绝对路径/fast-release.json' --refresh
+```
+
+`status` 只读显示资产、Git、trunk、网站和独立验证状态；`resume` 只补未完成步骤；`site --refresh` 只从本轮 `publicDirectory` 的本地文档重生成和上传网站，不自动 `git pull`、不重建或上传 SDK、不推送 Git、不发布 trunk。历史 `upload --from` / `publish --from` 仍可兼容旧回执。
+
+## 完整验收与历史
+
+需要完整正式验收时，按私有仓 `docs/技术方案/发布工程/正式发布流程与统一编排.md` 执行；本文件的极速发布状态不替代正式验收。
+
+更详细的历史操作保留在本仓 Git 历史与 [CHANGELOG](CHANGELOG.md)。已发布 Tag、TOS 资产和历史回执保持不变，不修改旧版本。
