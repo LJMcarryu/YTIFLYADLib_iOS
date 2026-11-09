@@ -1,17 +1,25 @@
 # YTIFLYADLib iOS SDK
 
-> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证，以及 SwiftPM 固定 `6.5.0` 的独立 Demo 模拟器 arm64 编译、链接、Tag 和资源核对；匿名下载复验、真机广告填充和 Apple 审核仍未执行。
+<!-- ifly-fast-release-notice:start -->
+
+> **6.5.0 已完成 CocoaPods 和 SwiftPM 的安装、版本锁定及模拟器构建验证。** 匿名下载复验、真机广告填充、真实媒体验收和 Apple 审核尚未执行。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 
+<details>
+<summary>版本验证与发布记录</summary>
+
+发布回执状态为 `FAST_UNVERIFIED`。已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证，以及 SwiftPM 固定 `6.5.0` 的独立 Demo 模拟器 arm64 编译、链接、Tag 和资源核对。
+
 资产上传摘要见[极速发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json)，元数据提交以同版本 Tag 为准；公开状态为 `FAST_PUBLISHED`，不表示全量验收通过。CocoaPods trunk 已由极速入口自动发布；Apple 人工审核和真实媒体验收未执行。
+
+</details>
+
+<!-- ifly-fast-release-notice:end -->
 
 本仓库提供面向 iOS 应用的优推（YT）定制广告 SDK，包含开屏和插屏，以及安装说明和 Objective-C 示例。
 
-
-
-
-[接入指南索引](docs/接入指南/README.md) · [运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持说明](#隐私许可与支持)
+[指南目录](docs/接入指南/README.md) · [运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持说明](#隐私许可与支持)
 
 ## 能力与接入身份
 
@@ -46,7 +54,7 @@
 | SwiftPM 清单 | Swift tools 5.9；需由能解析该清单的 Xcode 使用 |
 | 示例 | macOS、Xcode、CocoaPods；真机需配置自己的 Team 与 Bundle ID |
 
-包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见首页发布状态与同版发布记录。
+包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见本页版本验证说明与同版发布记录。
 
 ## 安装
 
@@ -102,5 +110,5 @@ Simple 实际调用开屏、插屏公开 API，使用 `Load`、`Show`、`Destroy
 
 ## 接入指南入口
 
-完整主题索引见[接入指南索引](docs/接入指南/README.md)。
+完整主题索引见[指南目录](docs/接入指南/README.md)。
 
