@@ -1,6 +1,6 @@
 # YTIFLYADLib iOS SDK
 
-> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证；匿名下载复验、SwiftPM 消费验收、真机广告填充和 Apple 审核仍未执行。
+> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证，以及 SwiftPM 固定 `6.5.0` 的独立 Demo 模拟器 arm64 编译、链接、Tag 和资源核对；匿名下载复验、真机广告填充和 Apple 审核仍未执行。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 
@@ -46,7 +46,7 @@
 | SwiftPM 清单 | Swift tools 5.9；需由能解析该清单的 Xcode 使用 |
 | 示例 | macOS、Xcode、CocoaPods；真机需配置自己的 Team 与 Bundle ID |
 
-包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证记录见同版 Release。
+包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见首页发布状态与同版发布记录。
 
 ## 安装
 
@@ -96,7 +96,7 @@ Simple 实际调用开屏、插屏公开 API，使用 `Load`、`Show`、`Destroy
 
 `ytifly_setPersonalizedEnabled:` 仅记录状态，不过滤或改写 IDFA、CAID、UA、请求字段或广告行为，也不替代隐私同意与 ATT 授权。宿主控制请求时机与传入信息；iOS 14 及以上仅在 ATT `authorized` 时读取、传入 IDFA。详情见[隐私与请求配置](docs/接入指南/隐私与请求配置.md)。
 
-[使用许可](LICENSE) · [安全问题私密报告](SECURITY.md) · [普通接入问题](https://download-adsdk.voiceads.cn/yt/index.html)
+[使用许可](LICENSE) · [安全问题私密报告](SECURITY.md) · [普通接入问题](docs/接入指南/生命周期与排错.md)
 
 反馈时提供 SDK/iOS/Xcode 版本、安装方式、广告形式、复现步骤与错误码；去除 IDFA、CAID、token、用户信息和敏感 URL。发布版日志仅保留错误与诊断，日志开关不会恢复已裁剪的请求/响应详情。
 
