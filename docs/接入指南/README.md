@@ -20,6 +20,6 @@
 
 ## 发布与版本
 
-- 当前版本和正式 Release 以根目录 `release-state.json`、README 发布标记和同版本 GitHub Release 为准。
+- 当前版本和正式 Release 以根目录 `release-state.json`、README 发布标记和同版本 TOS 发布记录 为准。
 - 发布历史见[历史发布记录](../需求设计/发布验收/历史发布记录.md)。
 - 安装示例固定到明确版本；升级前先阅读根目录 `CHANGELOG.md`。
