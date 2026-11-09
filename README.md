@@ -11,7 +11,7 @@
 
 
 
-[接入指南索引](docs/接入指南/README.md) · [运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持](#隐私许可与支持)
+[接入指南索引](docs/接入指南/README.md) · [运行示例](YTIFLYADLibSimple/README.md) · [安装方式](docs/接入指南/安装方式.md) · [隐私与请求配置](docs/接入指南/隐私与请求配置.md) · [更新记录](CHANGELOG.md) · [排错](docs/接入指南/生命周期与排错.md) · [支持说明](#隐私许可与支持)
 
 ## 能力与接入身份
 
@@ -96,7 +96,7 @@ Simple 实际调用开屏、插屏公开 API，使用 `Load`、`Show`、`Destroy
 
 `ytifly_setPersonalizedEnabled:` 仅记录状态，不过滤或改写 IDFA、CAID、UA、请求字段或广告行为，也不替代隐私同意与 ATT 授权。宿主控制请求时机与传入信息；iOS 14 及以上仅在 ATT `authorized` 时读取、传入 IDFA。详情见[隐私与请求配置](docs/接入指南/隐私与请求配置.md)。
 
-[使用许可](LICENSE) · [安全问题私密报告](SECURITY.md) · [普通接入问题 Issues](https://github.com/LJMcarryu/YTIFLYADLib_iOS/issues)
+[使用许可](LICENSE) · [安全问题私密报告](SECURITY.md) · [普通接入问题](https://download-adsdk.voiceads.cn/yt/index.html)
 
 反馈时提供 SDK/iOS/Xcode 版本、安装方式、广告形式、复现步骤与错误码；去除 IDFA、CAID、token、用户信息和敏感 URL。发布版日志仅保留错误与诊断，日志开关不会恢复已裁剪的请求/响应详情。
 
