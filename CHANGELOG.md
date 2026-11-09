@@ -1,8 +1,18 @@
 # 版本记录
 
+## [6.5.0] - 极速发布（未验证）
+
+> **6.5.0 极速发布未验证**：`verification=not-run`。本次仅编译、打包、上传 TOS，并同步公开清单和 Tag；不运行测试、匿名下载复验、SwiftPM/CocoaPods 消费验收或 CI。风险由发布者承担。
+
+<!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
+
+资产上传摘要见[极速发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json)，元数据提交以同版本 Tag 为准；公开状态为 `FAST_PUBLISHED`，不表示全量验收通过。CocoaPods trunk、Apple 人工审核和真实媒体验收未执行。
+
+> 以下为历史版本记录，验收结论仅适用于各节明确列出的历史版本。
+
 ## [6.4.6] - TOS 分发
 
-<!-- ifly-release-status: {"version":"6.4.6","status":"FORMAL","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/release-record.json"} -->
+
 
 本版 SDK 二进制改由火山云 TOS 分发，下载基础地址为 `https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt`。SwiftPM 与 CocoaPods 的公开版本入口保持，生产项目固定 `6.4.6`。从共享源码重新构建，包含点击字段 `ids_a` / `__IDS_A__`、CAID 时间字段和加速度计不可用守卫；旧版本不能据此解释为已包含这些变化。
 
