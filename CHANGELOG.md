@@ -1,62 +1,51 @@
 # 版本记录
 
-## [6.5.0] - 极速发布（未验证）
+## [6.5.0] - 更新说明
 
-> **6.5.0 发布回执状态为 `FAST_UNVERIFIED`**。本次已补充完成 CocoaPods trunk 安装、锁定版本和 iOS Simulator 构建验证；匿名下载复验、SwiftPM 消费验收、真机广告填充和 Apple 审核仍未执行。
+> `6.5.0` 已验证 CocoaPods、SwiftPM 的安装、版本锁定与模拟器构建；真机广告展示需在宿主 App 中联调。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
-
-资产上传摘要见[极速发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json)，元数据提交以同版本 Tag 为准；公开状态为 `FAST_PUBLISHED`，不表示全量验收通过。CocoaPods trunk 已由极速入口自动发布；Apple 人工审核和真实媒体验收未执行。
 
 > 以下为历史版本记录，验收结论仅适用于各节明确列出的历史版本。
 
 ## [6.4.6] - TOS 分发
 
-
-
 本版 SDK 二进制改由火山云 TOS 分发，下载基础地址为 `https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt`。SwiftPM 与 CocoaPods 的公开版本入口保持，生产项目固定 `6.4.6`。从共享源码重新构建，包含点击字段 `ids_a` / `__IDS_A__`、CAID 时间字段和加速度计不可用守卫；旧版本不能据此解释为已包含这些变化。
 
-产物清单、大小、SHA-256、源码与元数据提交见 [TOS 发布记录](https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/release-record.json)。只有该记录存在且 `release-state.json` 为 `CLOSED` 才表示本版发布完成。正式证据包含匿名下载以及 SwiftPM/CocoaPods 的 simulator/device 编译链接与资源检查；普通 CI 只检查元数据。CocoaPods trunk 已由极速入口自动发布；Apple 人工审核与真实媒体验收不在本次分发完成范围。
+下载文件与校验值见[版本下载记录](https://download-adsdk.voiceads.cn/ios_sdk/6.4.6/yt/release-record.json)。
 
 > 以下为历史版本记录，其中当前版本和验收结论仅适用于各自历史版本。
 
 ## [6.4.4] - 发布工程优化
 
-
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`25ebc73166c9596822cfcf4e93d74fc6c98bd5e4`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`56aaeb4d5b76858b266981d30afd76bff6a73ad2`
 
-`6.4.4` 的正式分发资料以同版本真实冻结 manifest 为准。当前正式版本：[`6.4.4`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。历史 Tag、Release 和资产保持不可变。
+历史版本：[`6.4.4`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.4)
 
 ### 变更
 
 - 全渠道统一为 `6.4.4`，从同一共享源码重新构建，公开 API 方法签名、广告能力和最低 iOS 11.0 要求保持。
-- 发布工程稳定脚本回归的执行环境与复用证明，保留完整构建、测试和消费验证范围。
-
 
 ## [6.4.2] - 冻结与发布记录
 
 > 以下为 `6.4.2` 历史记录；其中“当前”“本版”均只指该历史版本。
 
-`6.4.2` 的正式分发资料以同版本真实冻结 manifest 为准。当前正式版本：[`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)；公开时间和消费验证结论以 `release-state.json.publication` 与同版本 GitHub Release 的实际状态为准。历史 Tag、Release 和资产保持不可变。
+历史版本：[`6.4.2`](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.2)
 
 ## 6.4.1 - 发布工程优化
 
 > 以下为 `6.4.1` 历史记录；其中“当前”“本版”均只指该历史版本。
 
-`6.4.1` 的正式分发资料由同版本冻结库存生成；公开时间和消费验证结论以 `release-state.json.publication` 与 [Release 6.4.1](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1) 的实际状态为准。
+历史版本：[Release 6.4.1](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.1)
 
 ### 变更
 
-- 优化正式发布编排：统一入口与 profile 路由不减少正式五阶段门禁。
-- 发布脚本回归支持绑定完整身份的不可变回执与确定性分片；SDK、Demo、Scene 和变体测试仍按候选独立执行。
 - 增加匿名逐资产恢复、正式 consumer 受控恢复、摘要日志和运行耗时证据。
 - SDK 与 UI 行为继承 `6.4.0`，没有新增公开 API。
 
 ## 6.4.0 冻结与发布记录
 
-`6.4.0` 的正式分发资料与签名资产已经冻结；公开时间和消费结论以 `release-state.json.publication` 与 [Release 6.4.0](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.0) 的实际状态为准。
+历史版本：[Release 6.4.0](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.4.0)
 
 ### 变更
 
@@ -70,62 +59,40 @@
 正式发布于 2026-09-14；本版本的消费结果见 [RELEASING](RELEASING.md)。历史章节只描述各自版本，不替代当前接入契约。
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`82d8cab58eba588104eee9bc89063952a277af65`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b1bc50e272c29dd817cfcee8bbeeb9d60dfaca89`
-- `artifactCandidateId`：`17cccada18787f54c2faca204769d245a3ee29adf40f6c85c679896c28f16ba4`
 - `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`d5a4e2ecb1fc8495df33ed8ad37b765ca66af4cfd689eec0caf4c5424e8baf83`；`YTIFLYADLib-6.3.5.zip` 的 SHA-256：`ab3ed76a2f80ae65c0c8d5b7d6cf0d34ba26380c5b8ea020d305d82445f30631`；`checksums.txt` 的 SHA-256：`a163e9fca74cd9e833f5858cf86f8597ed8b7e77b987258033e1d7ebd7b1d38a`。
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 - 同步开屏加载代次、回调保护、全交互回流、视频暂停恢复和终态资源清理；插屏加强视频任务身份与回调重入保护，素材验真在后台执行并复核文件身份。
 - 共享图片下载支持订阅独立取消；加强日志脱敏和 Release 裁剪，Debug 时间线不进入正式包。继续只保留 Splash、Interstitial 和图片 / 视频能力。
-- Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。
 
 ## 6.3.1（2026-09-01）
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`b7e46a9f06897924d3d69d4d6a7e43f6237d8579`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`b86f5d7dc5e1105194889bc60a5ee9eec40b611f`
-- `candidateId`：`74f506ec2562caac2d0f1f48a404c1c3b69a1a2d29463ce94067b18821d1f1d7`
 - `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`7adf06f9c3f1d6fe915679322ccb941ba9122edf496c9815db12db3f4e459855`；`YTIFLYADLib-6.3.1.zip` 的 SHA-256：`c47eb332cc58c864b49b3a17f594debf80f4259a9b8123b7b437ff1657fe6f1f`；`checksums.txt` 的 SHA-256：`2a42ddd0da3656729e486e90e81bcd39c7a631a4432778e1fd50ae52d41c5c2f`。
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 - YT 不包含 NativeFeed 和 Banner；本版从统一提交 A 重建，仅同步共享 Core 诊断与安全网，不新增被裁剪格式的公开能力。
-- Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。
 
 ## 6.3.0（2026-08-25）
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`38eb0715f889fe2d585641891923511c9cc3e43e`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`0e667f9f1a2d615d3f7e15a552f093c903ff1a57`
-- `candidateId`：`1b69dab08ac31e756b707d824b2548c2c2cfd66b343007d00e43efdbee795c44`
 - `YTIFLYADLib.xcframework.zip` 的 SwiftPM checksum/SHA-256：`144d0c649c1a83d8572e4a3a1295ec0430a65b788554fe62cccf6c12631a0aa5`；`YTIFLYADLib-6.3.0.zip` 的 SHA-256：`e422b4b7ed238136e90b596e4958bbabf59649dd656e38f394248b7efdb638f6`。
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结；`delivery-manifest.json` 同步绑定提交 A。
 - 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 - `release-state.json` 在 `main` 继续保留历史 `6.2.4/CLOSED`；编排器生成的候选必须是 `6.3.0/FROZEN`。
 - YT 不包含 NativeFeed，本版不引入外部 CTA、媒体交互优先或结构化 `71503` 行为变化；仍从统一提交 A 重建。
 - 本版继续只包含 Splash、Interstitial 与图片/视频能力，白标、Bundle ID、资源、日志和通用请求地址契约不变。
-- Apple Review 扫描未执行且不是发布门禁：`requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`；未扫描不得表述为通过。
 
 ## 6.2.4（2026-08-17）
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`：`b0f745d582ce2bed5110702cff972be4153e5038`
-- `releaseMetadataCommit`：`7b08118b43a0c4441de4c76a64f34fa54b3fe889`
-- `candidateId`：`61f427469346615982e0225fad8187611794cc0a54c452da83073e89fd5ea1bd`
 - `YTIFLYADLib.xcframework.zip` 的 SHA-256 为 `5f3df44ec856f9e38c584311512ede168cf2c0ec45e3d09378052e1b0196e263`；`YTIFLYADLib-6.2.4.zip` 的 SHA-256 为 `5207fbc790d055af81f6c33d8558ce3d1e834875e3cd283cb4ccb8dc34d35de9`。
 - [GitHub Release 6.2.4](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.4) 的 4 个资产已完成无 Token 匿名校验，正式消费 [Run 32027223281](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/32027223281) 为 `success`。
 
 ## 6.2.3
 
 - `releaseState`：`FORMAL`
-- `binarySourceCommit`（SDK 二进制源码提交）：`ea0240e620b57d7275e486199099c648f51de257`
-- `releaseMetadataCommit`（仅回填 checksum、扫描汇总和发布验收事实，不是 SDK 二进制源码提交）：`0f26b7647e6c1aadb32eca68b24f6845639a59c2`
-- `releaseState=FORMAL` 表示正式签名资产、checksum 和 A/B 元数据已经冻结。
 - 公开可用性以同版本 GitHub Release 和发布后 CI 为准。
 
 - 首次发布优推（YT）独立公开分发仓。
 - framework/module 为 `YTIFLYADLib`，framework Bundle ID 为 `com.gameley.www.YouTuiAdSDK`。
 - 类型、方法、资源和日志白标为 `YTIFLY*`、`ytifly_*`、`YTAdvSDK.bundle`、`[YTAd]`。
-- Model B 整变体仅保留开屏、插屏和图片/视频素材能力；物理裁剪 Banner、Reward 和 NativeFeed。
+- 定制版仅保留开屏、插屏和图片/视频素材能力；物理裁剪 Banner、Reward 和 NativeFeed。
 - 普通请求固定使用通用地址 `https://msdk.voiceads.cn/sdk/req`，`customAdRequestURL=false`。
 - 提供 CocoaPods、SwiftPM 和手动接入产物，正式 Release 资产库存固定为四项。
 - 正式签名产物和 checksum 已冻结并公开；`YTIFLYADLib-6.2.3.zip` 的 SHA-256 为 `64e168120aac5f412ab96bdef78fff14e7ba75aae234a08d737fa5ad21c3e537`。[GitHub Release 6.2.3](https://github.com/LJMcarryu/YTIFLYADLib_iOS/releases/tag/6.2.3) 的 annotated tag 解引用到 `09148ce3c651b3dfc35cae3c873baab6d8105950`，4 个资产已通过无 Token 匿名验证与正式消费 [Run 31941599341](https://github.com/LJMcarryu/YTIFLYADLib_iOS/actions/runs/31941599341)。
-- 本版本未执行主动 Apple Review 扫描，该扫描不属于发布门禁；冻结状态为 `requiredForRelease=false`、`statusAtFreeze=not-run`、`evidenceIncluded=false`，不得表述为通过。

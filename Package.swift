@@ -1,6 +1,6 @@
 // swift-tools-version:5.9
 
-// 优推（YT）媒体定制 Model B 单包分发清单。
+// 优推（YT）媒体定制包分发清单。
 // 静态 binaryTarget 不投递外置资源，因此同名产品同时包含资源 target。
 
 import PackageDescription

@@ -5,12 +5,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        感谢反馈。**请勿在此提交安全漏洞**（见 [SECURITY.md](../../SECURITY.md)，走私密渠道）。
+        请删除日志中的 Token、设备标识和业务敏感信息。安全漏洞请通过[讯飞安全应急响应中心](https://security.iflysec.com/front/bugForm)私密上报。
   - type: input
     id: sdk-version
     attributes:
       label: SDK 版本
-      placeholder: 例如 6.3.0
+      placeholder: 例如 6.5.0
     validations:
       required: true
   - type: dropdown
