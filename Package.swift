@@ -1,7 +1,7 @@
 // swift-tools-version:5.9
 
-// 优推（YT）媒体定制包分发清单。
-// 静态 binaryTarget 不投递外置资源，因此同名产品同时包含资源 target。
+// 优推（YT）定制 SDK；product 自动包含资源与隐私清单。
+// 在宿主 App target 的 Other Linker Flags 中添加 -ObjC。
 
 import PackageDescription
 

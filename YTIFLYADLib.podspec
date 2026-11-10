@@ -1,6 +1,4 @@
-# 优推（YT）媒体定制包分发。
-# framework/module、类型、方法、资源分别白标为
-# YTIFLYADLib、YTIFLY*、ytifly_*、YTAdvSDK.bundle。
+# 优推（YT）定制 SDK：开屏与插屏。
 
 Pod::Spec.new do |s|
   s.name = 'YTIFLYADLib'
