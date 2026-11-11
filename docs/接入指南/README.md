@@ -11,12 +11,18 @@
 
 ## 指南目录
 
-- [安装方式](安装方式.md)：CocoaPods 和手动集成、SwiftPM
+- [安装方式](安装方式.md)：CocoaPods、SwiftPM、手动下载与安装检查
 - [隐私与请求配置](隐私与请求配置.md)：隐私、ATT 和请求参数
 - [开屏广告](开屏广告.md)：开屏图片/视频加载和展示
 - [插屏广告](插屏广告.md)：插屏半屏/全屏加载和展示
 - [服务端竞价](服务端竞价.md)：服务端竞价与结果通知
 - [生命周期与排错](生命周期与排错.md)：Scene、回调、生命周期和排错
+
+## 三种可运行示例
+
+- [CocoaPods 示例](../../YTIFLYADLibSimple/README.md)
+- [SwiftPM 示例](../../YTIFLYADLibSwiftPMSimple/README.md)
+- [手动示例](../../YTIFLYADLibManualSimple/README.md)
 
 ## 配套资料
 

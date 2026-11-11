@@ -5,6 +5,12 @@
 
 SDK 的安装和格式入口见[仓库 README](../README.md)，详细 API 与错误说明见[接入指南](../docs/接入指南/生命周期与排错.md)。本示例没有 Banner、激励视频或自渲染信息流入口。
 
+## 下载入口与版本
+
+无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.1`。
+
+依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.1`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
+
 ## 运行前准备
 
 - 安装 Xcode、命令行工具与 CocoaPods；最低部署版本为 iOS 11.0。

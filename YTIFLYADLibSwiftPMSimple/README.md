@@ -2,6 +2,17 @@
 
 此独立示例固定使用 SDK `6.5.1`；仓库当前发布版本另见[根 README](../README.md)。工程包含与本仓 CocoaPods Demo 对应的广告示例页面，应用 Bundle Identifier 独立，可以分别安装对比。示例源码是生成时的独立副本。
 
+## 获取示例
+
+使用 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSwiftPMSimple/`。不要只下载本页、`.xcodeproj` 或准备脚本，工程依赖同目录源码与资源。也可以从终端获取：
+
+```bash
+git clone --branch main --single-branch https://github.com/LJMcarryu/YTIFLYADLib_iOS.git
+cd YTIFLYADLib_iOS/YTIFLYADLibSwiftPMSimple
+```
+
+以下命令均在这个示例目录执行。已有仓库先确认使用最新 main，并检查本页声明的 SDK 版本；历史 Tag 的示例不会随 main 更新，`6.5.1` Tag 内的独立示例仍固定 `6.5.0`。安装自己的 App 请按[安装指南](../docs/接入指南/安装方式.md)操作。
+
 ## 运行
 
 无需运行 `pod install`。打开共享 workspace：
@@ -26,6 +37,12 @@ xcodebuild -workspace YTIFLYADLibSwiftPMSimple.xcworkspace \
   -destination 'generic/platform=iOS Simulator' \
   -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
+
+## 运行与排错
+
+构建成功后运行 App，首页应显示 SDK `6.5.1`。广告位宏、页面按钮顺序及回调观察见 [CocoaPods 示例的页面说明](../YTIFLYADLibSimple/README.md)；本副本中的对应源码仍位于 `YTIFLYADLibSimple/`，请修改本副本文件，不是另一示例的文件。内置格式等待 Ready 后 Show；信息流按页面完成加载、渲染与挂载。无填充不能据此认定安装失败。
+
+若找不到 workspace，先确认终端目录；若依赖下载失败，先恢复网络并重试。资源缺失、重复符号和模块名问题见[安装排查](../docs/接入指南/安装方式.md#安装失败排查)。
 
 ## 版本维护
 
