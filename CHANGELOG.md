@@ -1,10 +1,16 @@
 # 版本记录
 
+## [6.5.1] - 发布说明
+
+<!-- ifly-release-status: {"version":"6.5.1","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.1/yt/fast-release-record.json"} -->
+
+本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
+
 ## [6.5.0] - 更新说明
 
 > `6.5.0` 已验证 CocoaPods、SwiftPM 的安装、版本锁定与模拟器构建；真机广告展示需在宿主 App 中联调。
 
-<!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
+
 
 > 以下为历史版本记录，验收结论仅适用于各节明确列出的历史版本。
 

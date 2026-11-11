@@ -1,15 +1,16 @@
 # 版本说明
 
-## 当前版本：6.5.0
+## 当前版本：6.5.1
 
-<!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
+<!-- ifly-fast-release-notice:start -->
+当前版本：`6.5.1`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
 
-6.5.0 对外仅提供 CocoaPods 与手动方式安装；SwiftPM 暂停支持，预计 6.5.1 修复后恢复。步骤见[接入指南](docs/接入指南/README.md)。
+<!-- ifly-release-status: {"version":"6.5.1","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.1/yt/fast-release-record.json"} -->
 
-本版已验证 CocoaPods 的安装、版本锁定与模拟器构建；SwiftPM 暂停支持。真机广告展示、真实媒体验收与 Apple 审核尚未完成；请在自己的 App 中完成联调和上线检查。
+<!-- ifly-fast-release-notice:end -->
 
-## 升级与历史版本
+安装方式见[接入指南](docs/接入指南/README.md)，升级前阅读[更新记录](CHANGELOG.md)。
 
-升级前阅读[更新记录](CHANGELOG.md)，并保持 SDK、资源和示例版本一致。已发布版本的 Tag 与下载文件保持不变；修复通过新版本提供。
+已发布版本的 Tag 与下载文件保持不变；修复通过新版本提供。
 
-[在线接入文档](https://download-adsdk.voiceads.cn/yt/) · [历史发布记录](docs/需求设计/发布验收/历史发布记录.md)
+[在线接入文档](https://download-adsdk.voiceads.cn/yt/)

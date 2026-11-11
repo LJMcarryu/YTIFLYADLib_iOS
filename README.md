@@ -1,10 +1,9 @@
 # YTIFLYADLib iOS SDK
 
 <!-- ifly-fast-release-notice:start -->
+当前版本：`6.5.1`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
 
-当前版本：`6.5.0`。6.5.0 当前仅提供 CocoaPods 与手动集成；SwiftPM 暂停支持，预计 6.5.1 修复后恢复。真机广告展示需在宿主 App 中联调。
-
-<!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
+<!-- ifly-release-status: {"version":"6.5.1","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.1/yt/fast-release-record.json"} -->
 
 <!-- ifly-fast-release-notice:end -->
 
@@ -64,7 +63,7 @@ platform :ios, '11.0'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'YTIFLYADLib', '6.5.0'
+  pod 'YTIFLYADLib', '6.5.1'
 end
 ```
 
