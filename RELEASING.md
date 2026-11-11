@@ -4,9 +4,9 @@
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 
-通过 CocoaPods、Swift Package Manager 或手动方式安装，步骤见[接入指南](docs/接入指南/README.md)。
+6.5.0 对外仅提供 CocoaPods 与手动方式安装；SwiftPM 暂停支持，预计 6.5.1 修复后恢复。步骤见[接入指南](docs/接入指南/README.md)。
 
-本版已验证 CocoaPods、SwiftPM 的安装、版本锁定与模拟器构建。真机广告展示、真实媒体验收与 Apple 审核尚未完成；请在自己的 App 中完成联调和上线检查。
+本版已验证 CocoaPods 的安装、版本锁定与模拟器构建；SwiftPM 暂停支持。真机广告展示、真实媒体验收与 Apple 审核尚未完成；请在自己的 App 中完成联调和上线检查。
 
 ## 升级与历史版本
 
