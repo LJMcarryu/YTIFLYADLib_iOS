@@ -379,7 +379,7 @@
 			repositoryURL = "https://github.com/LJMcarryu/YTIFLYADLib_iOS.git";
 			requirement = {
 				kind = exactVersion;
-				version = 6.5.0;
+				version = 6.5.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "6.5.0",
-  "sdkTagCommit": "415027ab1c4ebcf932f73f8181e17a6b47096cae",
+  "sdkVersion": "6.5.1",
+  "sdkTagCommit": "181c3acae160ef77bd3b75db030c47101cbd04d4",
   "demoSourceCommit": "dfdacc7ed12900414968aae7d4747738828688ec",
   "demoSourceDirectory": "YTIFLYADLibSimple",
   "integration": "manual",
@@ -27,7 +27,7 @@
     "SDKResources/YTAdvSDK.bundle/IFLYFPlayer_close_volume@2x.png": "08554deab6a60632ce078015b8b18d574ce5d7b8fbc0a48dcfd9a369198a8ecb",
     "SDKResources/YTAdvSDK.bundle/IFLYPlayer_bottom_shadow.png": "f1409334d7bcc8816a132bbf4d25f22b920b1ce0222d373ed3883439557abb86",
     "SDKResources/YTAdvSDK.bundle/IFLYFPlayer_close_volume@3x.png": "d33298dd5563a1ae35ef18334e05eff110103dfe1488c506cc0f1a03c747d375",
-    "SDKResources/YTAdvSDK.bundle/PrivacyInfo.xcprivacy": "4a6dba56ca62d4a3294dc9b076893b958a64f3a2512ea4528bc2a7362a3f0e64",
+    "SDKResources/YTAdvSDK.bundle/PrivacyInfo.xcprivacy": "1631bf3d711da2672fc3b07d22608e742f8005b8d946f9d8704dcc9c4e6b1301",
     "SDKResources/YTAdvSDK.bundle/IFLYFPlayer_close_volume.png": "8070e2b1fd783948f235afedc954994615fb7da37337c4e8ea66c22b023370d8",
     "SDKResources/YTAdvSDK.bundle/IFLYPlayer_play@2x.png": "f36b7920ad4b89dfaa34e9ca23867b9d2c48fb20a1940e2bb839f09a97d77ab7",
     "SDKResources/YTAdvSDK.bundle/IFLYPlayer_top_shadow.png": "68cceee3a6e5c5c7170e0a1801b225405c8b91e7a18696363779dca6eeb2fd11"

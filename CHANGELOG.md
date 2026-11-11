@@ -2,6 +2,8 @@
 
 ## [6.5.1] - 发布说明
 
+优化资源与接入配置，同步三种安装方式的示例。CocoaPods、SwiftPM 和手动集成均已通过安装、版本锁定及 arm64 模拟器/设备架构构建验证；真机广告展示需另行联调。
+
 <!-- ifly-release-status: {"version":"6.5.1","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.1/yt/fast-release-record.json"} -->
 
 本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。

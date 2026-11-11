@@ -3,7 +3,7 @@
 ## 当前版本：6.5.1
 
 <!-- ifly-fast-release-notice:start -->
-当前版本：`6.5.1`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
+当前版本：`6.5.1`。本版已通过 CocoaPods、SwiftPM、手动集成的安装及 arm64 模拟器/设备架构构建验证；真机广告展示仍需在宿主 App 中联调。
 
 <!-- ifly-release-status: {"version":"6.5.1","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.1/yt/fast-release-record.json"} -->
 

@@ -1,6 +1,6 @@
 # SwiftPM 接入示例
 
-此独立示例固定使用 SDK `6.5.0`；仓库当前发布版本另见[根 README](../README.md)。工程包含与本仓 CocoaPods Demo 对应的广告示例页面，应用 Bundle Identifier 独立，可以分别安装对比。示例源码是生成时的独立副本。
+此独立示例固定使用 SDK `6.5.1`；仓库当前发布版本另见[根 README](../README.md)。工程包含与本仓 CocoaPods Demo 对应的广告示例页面，应用 Bundle Identifier 独立，可以分别安装对比。示例源码是生成时的独立副本。
 
 ## 运行
 
@@ -10,7 +10,7 @@
 open YTIFLYADLibSwiftPMSimple.xcworkspace
 ```
 
-Xcode 自动从 `https://github.com/LJMcarryu/YTIFLYADLib_iOS.git` 解析 **Exact Version 6.5.0**，选择的 Product 为 **YTIFLYADLib**；二进制从 TOS 下载。提交的 `Package.resolved` 绑定该版本 Tag。初次构建需联网，后续不要同时添加 Pods 或手动 framework。
+Xcode 自动从 `https://github.com/LJMcarryu/YTIFLYADLib_iOS.git` 解析 **Exact Version 6.5.1**，选择的 Product 为 **YTIFLYADLib**；二进制从 TOS 下载。提交的 `Package.resolved` 绑定该版本 Tag。初次构建需联网，后续不要同时添加 Pods 或手动 framework。
 
 在 Xcode 选择 **YTIFLYADLibSwiftPMSimple** scheme，再选择模拟器或真机。真机运行时设置自己的 Team 与 Bundle Identifier，替换源码 `Supporting Files` 中的广告位配置。示例 ID 不保证填充。工程最低声明 iOS 11.0，实际可用系统范围需结合所用 Xcode 与 SDK 验证。
 
