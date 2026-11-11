@@ -1,0 +1,9 @@
+# 仅提交共享工程与版本锁；缓存、签名个人设置和手动库留在本机。
+!*.xcworkspace/
+xcuserdata/
+*.xcuserstate
+DerivedData/
+SourcePackages/
+.build/
+Vendor/
+.sdk-prepare-*/
