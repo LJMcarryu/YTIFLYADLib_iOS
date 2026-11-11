@@ -2,7 +2,7 @@
 
 <!-- ifly-fast-release-notice:start -->
 
-当前版本：`6.5.0`。已验证 CocoaPods、SwiftPM 的安装、版本锁定与模拟器构建；真机广告展示需在宿主 App 中联调。
+当前版本：`6.5.0`。当前对外支持 CocoaPods 和手动集成；SwiftPM 暂停支持，预计 6.5.1 修复后恢复。真机广告展示需在宿主 App 中联调。
 
 <!-- ifly-release-status: {"version":"6.5.0","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.0/yt/fast-release-record.json"} -->
 
@@ -34,11 +34,10 @@
 | 项目 | 接入值 |
 | --- | --- |
 | CocoaPods Pod | `YTIFLYADLib` |
-| SwiftPM product | `YTIFLYADLib` |
 | framework / 导入模块 | `YTIFLYADLib` |
 | 外置资源 | `YTAdvSDK.bundle` |
 | 链接要求 | 静态 XCFramework；最终 App 保留 `$(inherited)` 和 `-ObjC`，选择 **Do Not Embed** |
-| 同一 App 的选择 | CocoaPods、SwiftPM、手动集成三选一；只安装一份 SDK 发行包 |
+| 同一 App 的选择 | CocoaPods、手动集成二选一；只安装一份 SDK 发行包 |
 
 类和协议使用 `YTIFLY` 前缀，公开方法和回调使用 `ytifly_` 前缀；初始化方法和属性以公开声明为准。YT 不支持与通用版或其他定制版同时链接，前缀不同也不代表能够共存。
 
@@ -52,7 +51,6 @@
 | --- | --- |
 | 最低系统 | iOS 11.0 |
 | 二进制接入 | 能使用 XCFramework 的 Xcode |
-| SwiftPM 清单 | Swift tools 5.9；需由能解析该清单的 Xcode 使用 |
 | 示例 | macOS、Xcode、CocoaPods；真机需配置自己的 Team 与 Bundle ID |
 
 包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见本页版本验证说明与同版发布记录。
@@ -78,7 +76,7 @@ open YourApp.xcworkspace
 
 CocoaPods 自动投递 `YTAdvSDK.bundle`、传播 `-ObjC` 并处理 `AdSupport` 与弱链接 `AppTrackingTransparency`。直接使用 CocoaPods trunk 的 Pod 名称和固定版本。
 
-[SwiftPM 精确版本与手动集成](docs/接入指南/安装方式.md)中提供产品选择、完整包资产名、资源和链接设置。
+[手动集成](docs/接入指南/安装方式.md)中提供产品选择、完整包资产名、资源和链接设置。
 
 ## 最小使用流程
 
