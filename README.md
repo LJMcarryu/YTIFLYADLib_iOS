@@ -21,7 +21,7 @@
 | SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.1 包 |
 | 手动集成 | [YTIFLYADLibManualSimple](YTIFLYADLibManualSimple/README.md) | 运行示例内 `准备SDK.py`，再打开 workspace |
 
-三种示例均固定使用 SDK `6.5.1`，具体运行步骤见各自 README。同一 App 只选择一种接入方式。
+CocoaPods 示例固定 SDK `6.5.2`；独立 SwiftPM 和手动示例仍固定 `6.5.1`，未作为本版接入验证。接入自己的 App 使用上方 `6.5.2` 安装指南；示例运行步骤与依赖版本见各自 README。同一 App 只选择一种接入方式。
 
 ## 能力与接入身份
 

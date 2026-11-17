@@ -2,6 +2,8 @@
 
 ## [6.5.2] - 发布说明
 
+优化广告展示与交互体验，调整请求处理与日志输出。
+
 <!-- ifly-release-status: {"version":"6.5.2","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.2/yt/fast-release-record.json"} -->
 
 本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
