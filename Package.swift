@@ -19,8 +19,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "YTIFLYADLib",
-            url: "https://download-adsdk.voiceads.cn/ios_sdk/6.5.1/yt/YTIFLYADLib.xcframework.zip",
-            checksum: "ba52d2497b533d7d2aad9f407235e9e906fdd88dee72ef90616037dc8933b10d"
+            url: "https://download-adsdk.voiceads.cn/ios_sdk/6.5.2/yt/YTIFLYADLib.xcframework.zip",
+            checksum: "33cf09513a61b574e7261c1426e330b584b85c7c7fd3ba114f6dce033952126b"
         ),
         .target(
             name: "YTIFLYADLibResources",
