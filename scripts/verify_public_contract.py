@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from release_version import VERSION_RE
 import subprocess
 import sys
 from pathlib import Path
@@ -80,7 +81,7 @@ def check(root: Path) -> None:
     require(state.get("repository") == repo, "release-state.repository 与契约不一致")
     require(state.get("channel") == channel, "release-state.channel 与契约不一致")
     version = state.get("version")
-    require(isinstance(version, str) and re.fullmatch(r"\d+\.\d+\.\d+", version), "release-state.version 非法")
+    require(isinstance(version, str) and VERSION_RE.fullmatch(version), "release-state.version 非法")
     readme = (root / "README.md").read_text(encoding="utf-8")
     marker = re.search(r"ifly-release-status:\s*(\{[^\n]+\})", readme)
     require(marker is not None, "README 缺少 ifly-release-status 标记")
@@ -90,8 +91,12 @@ def check(root: Path) -> None:
         raise ContractError(f"README 发布标记不是合法 JSON: {exc}") from exc
     require(marker_data.get("version") == version, "README 发布标记版本与 release-state 不一致")
     if state.get("distributionBackend") == "tos":
-        require(state.get("schemaVersion") == 4, "TOS 状态 schema 非法")
-        expected_url = f"https://download-adsdk.voiceads.cn/ios_sdk/{version}/{channel}/release-record.json"
+        fast = (state.get("schemaVersion") == 5 and state.get("phase") == "FAST_PUBLISHED"
+                and state.get("mode") == "fast" and state.get("verification") == "not-run")
+        require(state.get("schemaVersion") == 4 or fast, "TOS 状态 schema 非法")
+        record = "fast-release-record.json" if fast else "release-record.json"
+        expected_url = f"https://download-adsdk.voiceads.cn/ios_sdk/{version}/{channel}/{record}"
+        require(marker_data.get("status") == ("FAST_UNVERIFIED" if fast else "FORMAL"), "发布验证状态不一致")
         require(marker_data.get("distribution") == "tos", "TOS 发布标记来源不一致")
     else:
         expected_url = f"https://github.com/{repo}/releases/tag/{version}"

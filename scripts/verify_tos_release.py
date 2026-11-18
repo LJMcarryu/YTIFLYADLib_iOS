@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from release_version import VERSION_RE
 import re
 
 BASE = "https://download-adsdk.voiceads.cn/ios_sdk"
@@ -75,13 +76,17 @@ def verify(root: Path, version: str | None = None, *, metadata_only=False, allow
     if channel not in CHANNELS or state.get("channel") != channel or state.get("repository") != contract["repository"]:
         raise ValueError("公开仓/渠道身份不一致")
     version = version or state["version"]
-    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is None:
+    if VERSION_RE.fullmatch(version) is None:
         raise ValueError("版本非法")
     for path in contract["requiredRootFiles"]:
         read(root, path)
     base = f"{BASE}/{version}/{channel}"
-    expected_marker = {"version": version, "status": "FORMAL", "distribution": "tos",
-                       "releaseUrl": base + "/release-record.json"}
+    fast = (state.get("schemaVersion") == 5 and state.get("phase") == "FAST_PUBLISHED"
+            and state.get("mode") == "fast" and state.get("verification") == "not-run"
+            and state.get("distributionBackend") == "tos" and state.get("version") == version
+            and not allow_pending)
+    expected_marker = {"version": version, "status": "FAST_UNVERIFIED" if fast else "FORMAL", "distribution": "tos",
+                       "releaseUrl": base + ("/fast-release-record.json" if fast else "/release-record.json")}
     for name in ("README.md", "CHANGELOG.md", "RELEASING.md"):
         text = read(root, name)
         markers = re.findall(r"<!--\s*ifly-release-status:\s*(\{.*?\})\s*-->", text, re.S)
@@ -105,15 +110,18 @@ def verify(root: Path, version: str | None = None, *, metadata_only=False, allow
     if versions != [version] or sources != [base + "/" + combined.format(version=version)]:
         raise ValueError("Podspec 版本或 TOS URL 不一致")
     if not metadata_only:
-        if state.get("schemaVersion") != 4 or state.get("distributionBackend") != "tos" or state.get("phase") not in {"FROZEN", "CLOSED"} or state["version"] != version:
+        if not fast and (state.get("schemaVersion") != 4 or state.get("distributionBackend") != "tos" or state.get("phase") not in {"FROZEN", "CLOSED"} or state["version"] != version):
             raise ValueError("TOS 状态 schema/phase/version 非法")
         assets = state["assets"]
         by_name = verify_inventory(assets, channel, version)
         # uploadInventorySha256 绑定整个私有冻结计划；单仓只可复算自身 channelInventorySha256。
-        if (not isinstance(state.get("uploadInventorySha256"), str) or
+        if not fast and (not isinstance(state.get("uploadInventorySha256"), str) or
                 not re.fullmatch(r"[0-9a-f]{64}", state["uploadInventorySha256"]) or
                 state.get("channelInventorySha256") != inventory_digest(assets)):
             raise ValueError("TOS 库存摘要非法或与渠道库存不符")
+        if fast and (state.get("releaseRecordUrl") != expected_marker["releaseUrl"] or
+                     any(a.get("key") != f"ios_sdk/{version}/{channel}/{a['name']}" for a in assets)):
+            raise ValueError("极速发布回执或资产对象身份非法")
         for name, url, checksum in blocks:
             if by_name[targets[name]]["sha256"] != checksum:
                 raise ValueError("SwiftPM 摘要与冻结库存不同")

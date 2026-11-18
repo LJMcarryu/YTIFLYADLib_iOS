@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from github_http_retry import call_with_retry, execute_in_worker, read_json_response
 
 
-VERSION = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+from release_version import VERSION_RE as VERSION
 REPOSITORY = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 RELEASE_ID = re.compile(r"^[1-9][0-9]*$")
 PREPARATION_MODES = frozenset({"local", "repository"})
