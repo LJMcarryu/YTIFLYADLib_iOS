@@ -24,6 +24,11 @@ MAX_ENTRIES = 50000
 TIMEOUT = 30
 DEADLINE = 180
 STATE = ".prepared.json"
+# 随示例独立分发，仅用标准库；语义由回归与共享 release_version 规则对照。
+_VERSION_NUMBER = r"(?:0|[1-9][0-9]*)"
+_PRERELEASE_IDENTIFIER = rf"(?:{_VERSION_NUMBER}|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)"
+VERSION_PATTERN = rf"{_VERSION_NUMBER}\.{_VERSION_NUMBER}\.{_VERSION_NUMBER}(?:-{_PRERELEASE_IDENTIFIER}(?:\.{_PRERELEASE_IDENTIFIER})*)?"
+VERSION_RE = re.compile(VERSION_PATTERN)
 
 
 class PrepareError(RuntimeError):
@@ -59,7 +64,7 @@ def manifest(root):
     require(isinstance(data, dict), "资产清单必须为对象")
     require(data.get("schemaVersion") == 1, "资产清单 schemaVersion 必须为 1")
     version, channel = data.get("version"), data.get("channel")
-    require(isinstance(version, str) and re.fullmatch(r"\d+\.\d+\.\d+", version), "SDK 版本格式非法")
+    require(isinstance(version, str) and VERSION_RE.fullmatch(version), "SDK 版本格式非法")
     require(channel in {"general", "ys", "yt", "youku", "ys-splash"}, "SDK 渠道非法")
     assets = data.get("assets")
     require(isinstance(assets, list) and 0 < len(assets) <= 20, "资产列表必须包含 1 至 20 项")
