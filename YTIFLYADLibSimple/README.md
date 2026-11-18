@@ -7,9 +7,9 @@ SDK 的安装和格式入口见[仓库 README](../README.md)，详细 API 与错
 
 ## 下载入口与版本
 
-无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.2`。
+无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.3-beta.1`。
 
-依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.2`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
+依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.3-beta.1`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
 
 ## 运行前准备
 
@@ -31,7 +31,7 @@ open YTIFLYADLibSimple.xcworkspace
 
 已有仓库时，直接进入其中的 `YTIFLYADLibSimple` 目录执行最后两条命令。`pod install` 会生成 workspace；后续都从 `.xcworkspace` 打开。
 
-`Podfile` 已通过 CocoaPods 官方 trunk 固定到 `6.5.2`：
+`Podfile` 已通过 CocoaPods 官方 trunk 固定到 `6.5.3-beta.1`：
 
 ```ruby
 pod 'YTIFLYADLib', '6.5.2'
@@ -73,7 +73,7 @@ CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSuppor
 1. 选择 `YTIFLYADLibSimple` scheme。
 2. 模拟器运行：选择本机已安装的 iPhone 模拟器，执行 **Product → Run**。
 3. 真机运行：在 App target 的 **Signing & Capabilities** 中选择自己的 Team，设置可签名且与媒体配置一致的 Bundle Identifier，再选择设备运行。
-4. 首页确认实际 SDK 版本与本示例 `Podfile` 固定版本 `6.5.2` 一致，进入开屏或插屏页面。
+4. 首页确认实际 SDK 版本与本示例 `Podfile` 固定版本 `6.5.3-beta.1` 一致，进入开屏或插屏页面。
 
 仅检查模拟器构建时，可在本目录执行：
 
