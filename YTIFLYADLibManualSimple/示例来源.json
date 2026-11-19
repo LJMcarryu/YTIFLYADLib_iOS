@@ -1,6 +1,6 @@
 {
-  "sdkVersion": "6.5.1",
-  "sdkTagCommit": "181c3acae160ef77bd3b75db030c47101cbd04d4",
+  "sdkVersion": "6.5.3-beta.1",
+  "sdkTagCommit": "d70a53fee81f3838a5f7f780da7e001d1466c09d",
   "demoSourceCommit": "dfdacc7ed12900414968aae7d4747738828688ec",
   "demoSourceDirectory": "YTIFLYADLibSimple",
   "integration": "manual",
