@@ -14,6 +14,7 @@ CHANNELS = {
     "general": ("IFLYADLib.podspec", "IFLYADLib-modelA-{version}.zip",
         {"IFLYAd" + name: "IFLYAd" + name + ".xcframework.zip"
          for name in ("Core", "VideoUI", "Banner", "Splash", "Interstitial", "NativeFeed", "Reward")}),
+    "zjys": ("ZJ_YSAdSDK.podspec", "ZJ_YSAdSDK-{version}.zip", {"ZJ_YSAdSDK": "ZJ_YSAdSDK.xcframework.zip"}),
     "ys": ("YSIFLYADLib.podspec", "YSIFLYADLib-{version}.zip", {"YSIFLYADLib": "YSIFLYADLib.xcframework.zip"}),
     "yt": ("YTIFLYADLib.podspec", "YTIFLYADLib-{version}.zip", {"YTIFLYADLib": "YTIFLYADLib.xcframework.zip"}),
     "youku": ("YKIFLYADLib.podspec", "YKIFLYADLib-{version}.zip", {"IFLYADLib": "IFLYADLib.xcframework.zip"}),
@@ -30,6 +31,19 @@ def expected_asset_names(channel, version):
     if channel in {"yt", "youku"}:
         names.add("delivery-manifest.json")
     return names
+
+
+def verify_initial_release(state, contract, version):
+    """仅为明确批准的 ZJYS 首发接受无发布事实的准备状态。"""
+    expected = {"schemaVersion": 4, "distributionBackend": "tos", "channel": "zjys",
+        "repository": "LJMcarryu/ZJYSIFLYADLib_iOS", "version": "6.5.3-beta.2",
+        "phase": "PREPARING", "mode": "formal", "verification": "not-run", "assets": []}
+    if (version != expected["version"] or state != expected
+            or contract.get("channel") != expected["channel"]
+            or contract.get("repository") != expected["repository"]
+            or contract.get("firstRelease") != {"version": expected["version"], "phase": "PREPARING"}):
+        raise ValueError("首发准备状态须精确绑定批准渠道、版本和未发布事实")
+    return {"version": version, "status": "CANDIDATE", "distribution": "tos", "releaseUrl": None}
 
 
 def inventory_digest(assets):
@@ -68,7 +82,7 @@ def read(root, relative):
     return path.read_text()
 
 
-def verify(root: Path, version: str | None = None, *, metadata_only=False, allow_pending=False):
+def verify(root: Path, version: str | None = None, *, metadata_only=False, allow_pending=False, initial_projection=False):
     root = root.absolute()
     contract = json.loads(read(root, "repository-contract.json"))
     state = json.loads(read(root, "release-state.json"))
@@ -81,6 +95,20 @@ def verify(root: Path, version: str | None = None, *, metadata_only=False, allow
     for path in contract["requiredRootFiles"]:
         read(root, path)
     base = f"{BASE}/{version}/{channel}"
+    if state.get("phase") == "PREPARING" and (allow_pending or not metadata_only):
+        expected_marker = verify_initial_release(state, contract, version)
+        if initial_projection:
+            if not metadata_only or not allow_pending:
+                raise ValueError("首发文档投影仅用于冻结库存驱动的元数据同步预检")
+            expected_marker = {"version": version, "status": "FORMAL", "distribution": "tos",
+                "releaseUrl": base + "/release-record.json"}
+        for name in ("README.md", "CHANGELOG.md", "RELEASING.md"):
+            text = read(root, name)
+            markers = re.findall(r"<!--\s*ifly-release-status:\s*(\{.*?\})\s*-->", text, re.S)
+            if len(markers) != 1 or json.loads(markers[0]) != expected_marker:
+                raise ValueError(f"{name} 首发准备标记不一致")
+        return {"status": "success", "channel": channel, "version": version,
+            "distributionBackend": "tos", "metadata": "pending", "verification": "not-run"}
     fast = (state.get("schemaVersion") == 5 and state.get("phase") == "FAST_PUBLISHED"
             and state.get("mode") == "fast" and state.get("verification") == "not-run"
             and state.get("distributionBackend") == "tos" and state.get("version") == version
