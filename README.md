@@ -7,8 +7,6 @@
 
 <!-- ifly-fast-release-notice:end -->
 
-预发布候选：`6.5.3-beta.1`，仅供接入测试。生产环境默认继续使用 `6.5.2`。安装可用性与验收范围以同版发布记录为准；本说明不代表本版真机广告运行、宿主联调或 Apple 审核已通过。
-
 
 
 本仓库提供面向 iOS 应用的优推（YT）定制广告 SDK，包含开屏和插屏，以及安装说明和 Objective-C 示例。
@@ -22,10 +20,10 @@
 | 接入方式 | 独立示例 | 首次准备 |
 | --- | --- | --- |
 | CocoaPods | [YTIFLYADLibSimple](YTIFLYADLibSimple/README.md) | 在示例目录运行 `pod install` |
-| SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.1 包 |
+| SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.3 包 |
 | 手动集成 | [YTIFLYADLibManualSimple](YTIFLYADLibManualSimple/README.md) | 运行示例内 `准备SDK.py`，再打开 workspace |
 
-三种接入示例均固定预发布 SDK `6.5.3-beta.1`，用于测试接入。2026-11-19 已通过 Xcode 26.2 下的 arm64 模拟器与设备架构 Debug 构建，并核对版本锁、SDK 链接、资源和隐私清单；设备架构构建关闭代码签名，不代表真机安装、广告运行或 Apple 审核通过。生产 App 默认继续使用 `6.5.2`；运行步骤见各示例 README。同一 App 只选择一种接入方式。
+三种接入示例均已同步至 SDK `6.5.3`；本次快速发布未执行安装、构建与广告展示复验，请按发布回执在宿主 App 中联调。
 
 ## 能力与接入身份
 
@@ -60,9 +58,9 @@
 
 包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见本页版本验证说明与同版发布记录。
 
-## 6.5.3-beta.1 预发布测试
+## 6.5.3 版本说明
 
-仅在测试分支中选用本预发布；常规生产接入继续使用下方 `6.5.2` 安装配置。完成同版发布后，需要测试时将 Podfile 中的对应依赖精确指定为：
+当前版本为 6.5.3；接入时将 Podfile 中的对应依赖精确指定为：
 
 ```ruby
 pod 'YTIFLYADLib', '6.5.3'
