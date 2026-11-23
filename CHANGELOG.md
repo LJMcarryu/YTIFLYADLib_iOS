@@ -1,10 +1,16 @@
 # 版本记录
 
+## [6.5.3] - 发布说明
+
+<!-- ifly-release-status: {"version":"6.5.3","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.3/yt/fast-release-record.json"} -->
+
+本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
+
 ## [6.5.3-beta.1] - 预发布候选
 
 本预发布仅用于接入测试；生产环境默认继续使用 `6.5.2`。发布可用性与验收范围以同版发布记录为准，真机广告运行、宿主联调和 Apple 审核须分别验证。
 
-<!-- ifly-release-status: {"version":"6.5.3-beta.1","status":"FORMAL","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.3-beta.1/yt/release-record.json"} -->
+
 
 - 优化开屏返回宿主后的展示处理与广告加载稳定性。
 
