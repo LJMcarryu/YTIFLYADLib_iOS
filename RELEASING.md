@@ -1,11 +1,11 @@
 # 版本说明
 
-## 当前版本：6.5.3
+## 当前版本：6.5.4
 
 <!-- ifly-fast-release-notice:start -->
-当前版本：`6.5.3`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
+当前版本：`6.5.4`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
 
-<!-- ifly-release-status: {"version":"6.5.3","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.3/yt/fast-release-record.json"} -->
+<!-- ifly-release-status: {"version":"6.5.4","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/fast-release-record.json"} -->
 
 <!-- ifly-fast-release-notice:end -->
 
