@@ -18,10 +18,10 @@
 | 接入方式 | 独立示例 | 首次准备 |
 | --- | --- | --- |
 | CocoaPods | [YTIFLYADLibSimple](YTIFLYADLibSimple/README.md) | 在示例目录运行 `pod install` |
-| SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.3 包 |
+| SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.4 包 |
 | 手动集成 | [YTIFLYADLibManualSimple](YTIFLYADLibManualSimple/README.md) | 运行示例内 `准备SDK.py`，再打开 workspace |
 
-三种接入示例均已同步至 SDK `6.5.3`；本次快速发布未执行安装、构建与广告展示复验，请按发布回执在宿主 App 中联调。
+三种接入示例的依赖均固定为 SDK `6.5.4`；各方式的验证范围见对应示例 README，接入后仍需在实际宿主 App 中验证广告展示与业务流程。
 
 ## 能力与接入身份
 
@@ -56,9 +56,13 @@
 
 包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见本页版本验证说明与同版发布记录。
 
-## 6.5.3 版本说明
+## 6.5.4 版本说明
 
-当前版本为 6.5.3；接入时将 Podfile 中的对应依赖精确指定为：
+本渠道同步更新至 `6.5.4`，广告形式保持不变。
+
+本次快速发布未执行安装、构建与广告展示复验；旧系统真机、真实媒体宿主及 Apple 审核仍需分别验证。
+
+当前版本为 6.5.4；接入时将 Podfile 中的对应依赖精确指定为：
 
 ```ruby
 pod 'YTIFLYADLib', '6.5.4'

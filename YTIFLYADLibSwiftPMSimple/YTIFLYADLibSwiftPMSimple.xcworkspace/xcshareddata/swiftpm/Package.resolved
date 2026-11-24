@@ -1,15 +1,15 @@
 {
-  "originHash": "090e3fed4cacc033035e3e260d1a631859630828759b36bdac39b58be4d06f22",
-  "pins": [
+  "originHash" : "090e3fed4cacc033035e3e260d1a631859630828759b36bdac39b58be4d06f22",
+  "pins" : [
     {
-      "identity": "ytiflyadlib_ios",
-      "kind": "remoteSourceControl",
-      "location": "https://github.com/LJMcarryu/YTIFLYADLib_iOS.git",
-      "state": {
-        "revision": "34aa43877dc81bb4a8cab06bcd8927d2631cc163",
-        "version": "6.5.3"
+      "identity" : "ytiflyadlib_ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LJMcarryu/YTIFLYADLib_iOS.git",
+      "state" : {
+        "revision" : "beafd3975e43f94c65da9a8b90eedde226e72dbb",
+        "version" : "6.5.4"
       }
     }
   ],
-  "version": 3
+  "version" : 3
 }

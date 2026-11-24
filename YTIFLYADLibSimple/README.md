@@ -1,15 +1,14 @@
 # YTIFLYADLibSimple 使用说明
 
-> 本示例遵循公开仓 Demo 契约：固定 SDK 版本、独立 Podfile、可复现运行说明和脱敏问题反馈。
 本工程演示 `YTIFLYADLib 6.5.4` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
 
 SDK 的安装和格式入口见[仓库 README](../README.md)，详细 API 与错误说明见[接入指南](../docs/接入指南/生命周期与排错.md)。本示例没有 Banner、激励视频或自渲染信息流入口。
 
 ## 下载入口与版本
 
-无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.3`。
+无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.4`。
 
-依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.3`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
+依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.4`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
 
 ## 运行前准备
 
@@ -31,10 +30,10 @@ open YTIFLYADLibSimple.xcworkspace
 
 已有仓库时，直接进入其中的 `YTIFLYADLibSimple` 目录执行最后两条命令。`pod install` 会生成 workspace；后续都从 `.xcworkspace` 打开。
 
-`Podfile` 已通过 CocoaPods 官方 trunk 固定到 `6.5.4`：
+`Podfile` 使用固定版本 Tag 的 Podspec，版本为 `6.5.4`：
 
 ```ruby
-pod 'YTIFLYADLib', '6.5.4'
+pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.5.4/YTIFLYADLib.podspec'
 ```
 
 CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSupport` 及弱链接的 `AppTrackingTransparency`，无需再手动 Embed framework 或添加资源副本。
@@ -152,7 +151,7 @@ xcodebuild build \
 
 | 现象 | 处理 |
 | --- | --- |
-| `pod install` 失败 | 检查 CocoaPods、网络和 CocoaPods trunk/TOS 下载地址，保留第一条实际下载或解析错误；确认版本已发布到 CocoaPods trunk 后重试 |
+| `pod install` 失败 | 检查 CocoaPods、GitHub 与 TOS 下载地址和代理，保留第一条实际下载或解析错误后重试 |
 | 找不到 `YTIFLYADLib` | 先安装依赖，再打开 workspace；确认 scheme 和 target 正确 |
 | 真机签名失败 | 选择自己的 Team，检查 Bundle Identifier、设备注册与签名证书 |
 | 收到 `70204` | 当前无填充；检查广告位和投放，按业务策略稍后重试 |
@@ -164,6 +163,6 @@ xcodebuild build \
 
 更多错误码及处理方式见[常见问题](../docs/接入指南/生命周期与排错.md#常见问题)。通过双方约定的支持渠道反馈问题时附 SDK/iOS/Xcode 版本、安装方式、广告形式、复现步骤和脱敏后的错误日志。
 
-## 6.5.3 快速发布说明
+## 已验证范围
 
-本示例已同步至 SDK `6.5.3`；本次快速发布未执行独立安装、构建与广告展示复验，请按发布回执在宿主 App 中联调。
+2026-11-24，固定 SDK `6.5.4`，使用 Xcode 26.2 完成 Debug 的 iOS Simulator arm64 和 iOS 设备 arm64 构建，并核对依赖身份、链接符号、资源及隐私清单。设备架构构建关闭代码签名。未安装或运行 App，未验证广告加载、填充、展示、点击跳转、签名分发、x86_64 或 iOS 11 设备运行。

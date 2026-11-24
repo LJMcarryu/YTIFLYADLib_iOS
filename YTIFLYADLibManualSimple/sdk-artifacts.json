@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "version": "6.5.3",
+  "version": "6.5.4",
   "channel": "yt",
   "assets": [
     {
       "name": "YTIFLYADLib.xcframework",
-      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.3/yt/YTIFLYADLib.xcframework.zip",
-      "sha256": "2060da9fc725840ab7fc749a1b3e12ae63d5f997031a4cbf9644f3d56ba12889"
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/YTIFLYADLib.xcframework.zip",
+      "sha256": "8f44d044c6fde38a4f42c2f4e703e623cd6df0c44eac9b08ae65628db6f434a0"
     }
   ]
 }

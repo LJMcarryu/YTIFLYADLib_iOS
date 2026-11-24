@@ -4,7 +4,9 @@
 
 <!-- ifly-release-status: {"version":"6.5.4","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/fast-release-record.json"} -->
 
-本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
+同步更新 SDK 版本至 `6.5.4`，本渠道的广告形式保持不变。
+
+本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。旧系统真机、真实媒体宿主及 Apple 审核仍需分别验证。
 
 ## [6.5.3] - 发布说明
 
