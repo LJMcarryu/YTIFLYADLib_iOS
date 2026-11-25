@@ -1,14 +1,14 @@
 # YTIFLYADLibSimple 使用说明
 
-本工程演示 `YTIFLYADLib 6.5.4` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
+本工程演示 `YTIFLYADLib 6.5.5` 的开屏与插屏接入，使用 Objective-C 和 SDK 公开 API。页面提供加载、展示、状态检查、销毁及回调日志，便于先跑通广告生命周期，再迁移到媒体 App。
 
 SDK 的安装和格式入口见[仓库 README](../README.md)，详细 API 与错误说明见[接入指南](../docs/接入指南/生命周期与排错.md)。本示例没有 Banner、激励视频或自渲染信息流入口。
 
 ## 下载入口与版本
 
-无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.4`。
+无需 Git 时，可下载 [GitHub main 分支源码 ZIP](https://github.com/LJMcarryu/YTIFLYADLib_iOS/archive/refs/heads/main.zip)，解压后进入 `YTIFLYADLib_iOS-main/YTIFLYADLibSimple/`，再执行下方安装命令。不要只下载 `.xcodeproj`。使用 Git 的命令见下文；已有副本先确认本页与 Podfile 都固定 SDK `6.5.5`。
 
-依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.4`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
+依赖安装后核对 `Podfile.lock` 中 `YTIFLYADLib` 为 `6.5.5`。版本找不到或锁文件冲突的处理见[安装指南](../docs/接入指南/安装方式.md#cocoapods)。
 
 ## 运行前准备
 
@@ -30,10 +30,10 @@ open YTIFLYADLibSimple.xcworkspace
 
 已有仓库时，直接进入其中的 `YTIFLYADLibSimple` 目录执行最后两条命令。`pod install` 会生成 workspace；后续都从 `.xcworkspace` 打开。
 
-`Podfile` 使用固定版本 Tag 的 Podspec，版本为 `6.5.4`：
+`Podfile` 使用固定版本 Tag 的 Podspec，版本为 `6.5.5`：
 
 ```ruby
-pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.5.4/YTIFLYADLib.podspec'
+pod 'YTIFLYADLib', :podspec => 'https://raw.githubusercontent.com/LJMcarryu/YTIFLYADLib_iOS/6.5.5/YTIFLYADLib.podspec'
 ```
 
 CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSupport` 及弱链接的 `AppTrackingTransparency`，无需再手动 Embed framework 或添加资源副本。
@@ -72,7 +72,7 @@ CocoaPods 自动处理静态 framework、`YTAdvSDK.bundle`、`-ObjC`、`AdSuppor
 1. 选择 `YTIFLYADLibSimple` scheme。
 2. 模拟器运行：选择本机已安装的 iPhone 模拟器，执行 **Product → Run**。
 3. 真机运行：在 App target 的 **Signing & Capabilities** 中选择自己的 Team，设置可签名且与媒体配置一致的 Bundle Identifier，再选择设备运行。
-4. 首页确认实际 SDK 版本与本示例 `Podfile` 固定版本 `6.5.4` 一致，进入开屏或插屏页面。
+4. 首页确认实际 SDK 版本与本示例 `Podfile` 固定版本 `6.5.5` 一致，进入开屏或插屏页面。
 
 仅检查模拟器构建时，可在本目录执行：
 

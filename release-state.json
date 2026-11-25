@@ -4,38 +4,38 @@
   "distributionBackend": "tos",
   "phase": "FAST_PUBLISHED",
   "verification": "not-run",
-  "version": "6.5.4",
+  "version": "6.5.5",
   "channel": "yt",
   "repository": "LJMcarryu/YTIFLYADLib_iOS",
-  "releaseRecordUrl": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/fast-release-record.json",
+  "releaseRecordUrl": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.5/yt/fast-release-record.json",
   "assets": [
     {
-      "name": "YTIFLYADLib-6.5.4.zip",
-      "size": 2894568,
-      "sha256": "073a4136c468394bbc6b1f1109cdd6f4d253a8c84d1a3388bc1d87ddb27f4b05",
-      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/YTIFLYADLib-6.5.4.zip",
-      "key": "ios_sdk/6.5.4/yt/YTIFLYADLib-6.5.4.zip"
+      "name": "YTIFLYADLib-6.5.5.zip",
+      "size": 3032539,
+      "sha256": "e2ecee11d86baf90f59c6ba30afc15bfca1ca35c141dddde1d3d1678773a8620",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.5/yt/YTIFLYADLib-6.5.5.zip",
+      "key": "ios_sdk/6.5.5/yt/YTIFLYADLib-6.5.5.zip"
     },
     {
       "name": "YTIFLYADLib.xcframework.zip",
-      "size": 2813248,
-      "sha256": "8f44d044c6fde38a4f42c2f4e703e623cd6df0c44eac9b08ae65628db6f434a0",
-      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/YTIFLYADLib.xcframework.zip",
-      "key": "ios_sdk/6.5.4/yt/YTIFLYADLib.xcframework.zip"
+      "size": 2978682,
+      "sha256": "11f3d713c4a39130f93510ec98b7603f04c25eaf431f656d939ccccd65a79f86",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.5/yt/YTIFLYADLib.xcframework.zip",
+      "key": "ios_sdk/6.5.5/yt/YTIFLYADLib.xcframework.zip"
     },
     {
       "name": "checksums.txt",
       "size": 290,
-      "sha256": "ee29967d66b2a3cf020f4abc6667c939051b36bcce3cfa4f7d5cec9de8a5344a",
-      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/checksums.txt",
-      "key": "ios_sdk/6.5.4/yt/checksums.txt"
+      "sha256": "b40cbfa18e197ea30846e1b2f92c0e1fbdf0a38b1c5424ef7c51b8bd790ffd41",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.5/yt/checksums.txt",
+      "key": "ios_sdk/6.5.5/yt/checksums.txt"
     },
     {
       "name": "delivery-manifest.json",
       "size": 1067,
-      "sha256": "cb29fbc054a02829b8dc7efd9a776ab60f6fcd5bc9dfd345f06e3969b4e5e0f3",
-      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/delivery-manifest.json",
-      "key": "ios_sdk/6.5.4/yt/delivery-manifest.json"
+      "sha256": "fc0eeaa63a0b64d73f59c22a98d818c47c03242068bd92efc53d65a90dc6cef9",
+      "url": "https://download-adsdk.voiceads.cn/ios_sdk/6.5.5/yt/delivery-manifest.json",
+      "key": "ios_sdk/6.5.5/yt/delivery-manifest.json"
     }
   ]
 }

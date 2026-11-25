@@ -1,9 +1,9 @@
 # YTIFLYADLib iOS SDK
 
 <!-- ifly-fast-release-notice:start -->
-当前版本：`6.5.4`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
+当前版本：`6.5.5`。本版尚未完成安装、构建与广告展示验证，请先在宿主 App 中联调。
 
-<!-- ifly-release-status: {"version":"6.5.4","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.4/yt/fast-release-record.json"} -->
+<!-- ifly-release-status: {"version":"6.5.5","status":"FAST_UNVERIFIED","distribution":"tos","releaseUrl":"https://download-adsdk.voiceads.cn/ios_sdk/6.5.5/yt/fast-release-record.json"} -->
 
 <!-- ifly-fast-release-notice:end -->
 
@@ -18,10 +18,10 @@
 | 接入方式 | 独立示例 | 首次准备 |
 | --- | --- | --- |
 | CocoaPods | [YTIFLYADLibSimple](YTIFLYADLibSimple/README.md) | 在示例目录运行 `pod install` |
-| SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.4 包 |
+| SwiftPM | [YTIFLYADLibSwiftPMSimple](YTIFLYADLibSwiftPMSimple/README.md) | 打开 workspace，解析远程 6.5.5 包 |
 | 手动集成 | [YTIFLYADLibManualSimple](YTIFLYADLibManualSimple/README.md) | 运行示例内 `准备SDK.py`，再打开 workspace |
 
-三种接入示例的依赖均固定为 SDK `6.5.4`；各方式的验证范围见对应示例 README，接入后仍需在实际宿主 App 中验证广告展示与业务流程。
+三种接入示例的依赖均固定为 SDK `6.5.5`；各方式的验证范围见对应示例 README，接入后仍需在实际宿主 App 中验证广告展示与业务流程。
 
 ## 能力与接入身份
 
@@ -56,20 +56,6 @@
 
 包清单版本不单独代表全部 Xcode 的二进制兼容性。运行示例后的检查方法与模拟器、真机验证边界见 [Simple 指南](YTIFLYADLibSimple/README.md)；具体版本的构建及消费验证范围见本页版本验证说明与同版发布记录。
 
-## 6.5.4 版本说明
-
-本渠道同步更新至 `6.5.4`，广告形式保持不变。
-
-本次快速发布未执行安装、构建与广告展示复验；旧系统真机、真实媒体宿主及 Apple 审核仍需分别验证。
-
-当前版本为 6.5.4；接入时将 Podfile 中的对应依赖精确指定为：
-
-```ruby
-pod 'YTIFLYADLib', '6.5.4'
-```
-
-保留既有资源与链接配置，重新执行 `pod install` 并检查 `Podfile.lock` 中的版本。SwiftPM 测试接入请选择 Exact Version `6.5.4`，不要使用浮动版本范围。
-
 ## 安装
 
 推荐通过 CocoaPods 官方 trunk 安装精确版本，将 `YourApp` 替换为实际 target：
@@ -80,7 +66,7 @@ platform :ios, '11.0'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'YTIFLYADLib', '6.5.4'
+  pod 'YTIFLYADLib', '6.5.5'
 end
 ```
 
